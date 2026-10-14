@@ -24,11 +24,18 @@
             position: relative; z-index: 10000;
         }
 
+        /* الشريط الجانبي لسطح المكتب */
         .top-bar {
             position: fixed; right: 0; top: 0; width: 210px; height: 100vh;
             background: rgba(238, 242, 245, 0.99); padding: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex;
             flex-direction: column; gap: 10px; overflow-y: auto; z-index: 9999;
+            transition: right 0.3s ease;
+        }
+
+        /* شريط الجوال العلوي */
+        .mobile-header-bar {
+            display: none;
         }
 
         .btn {
@@ -139,7 +146,6 @@
             flex: 0 0 1.0cm; width: 1.0cm; min-width: 1.0cm; max-width: 1.0cm;
         }
 
-        /* خط الشارع: تكبير 10% إضافية (13.8 → 15.18) */
         #streetInput {
             flex: 1 1 auto; min-width: 80px;
             min-height: 1.5em; max-height: 3em;
@@ -426,7 +432,44 @@
             font-size: 0.525rem; opacity: 0.95;
             font-weight: 500; color: #1565c0;
         }
+
+        /* تعديلات الموبايل والشاشات الصغيرة */
         @media (max-width: 768px) {
+            body { padding-right: 15px !important; padding-top: 65px; }
+            .invoice-system { margin: 0 auto; }
+            
+            /* شريط الجوال العلوي */
+            .mobile-header-bar {
+                display: flex; position: fixed; top: 0; left: 0; right: 0;
+                height: 52px; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+                z-index: 9998; align-items: center; justify-content: space-between; padding: 0 15px;
+            }
+            .mobile-title { font-weight: 900; font-size: 15px; color: #d32f2f; }
+            .mobile-menu-btn {
+                background: #17a2b8; color: white; border: none; padding: 7px 12px;
+                border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer;
+                display: flex; align-items: center; gap: 5px;
+            }
+
+            /* تحويل الشريط الجانبي إلى درج منزلق (Drawer) */
+            .top-bar {
+                right: -270px; width: 260px; height: 100vh;
+                box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+                background: #ffffff;
+            }
+            .top-bar.mobile-open {
+                right: 0;
+            }
+
+            /* خلفية معتمة عند فتح القائمة بالموبايل */
+            .mobile-backdrop {
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); z-index: 9997; display: none;
+            }
+            .top-bar.mobile-open ~ .mobile-backdrop {
+                display: block;
+            }
+
             .signature-card {
                 position: relative; bottom: auto; left: auto;
                 margin: 20px auto 0; width: fit-content; animation: none;
@@ -441,21 +484,51 @@
     <button class="btn btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="exportBackup()">أخذ نسخة الآن</button>
 </div>
 
-<!-- الشريط الجانبي: الترتيب الجديد (نقل سجل الحركات قبل إعادة التحميل) -->
-<div class="top-bar no-print">
-    <button class="btn btn-primary" id="saveAndExportBtn">💾 حفظ وتصدير PDF وتالي</button>
-    <button class="btn btn-info" id="viewInvoicesBtn">📂 الفواتير المحفوظة</button>
-    <button class="btn btn-purple" id="statementBtn">📊 كشف حساب عميل</button>
-    <button class="btn btn-purple" id="reportBtn">📈 تقرير الفواتير</button>
-    <button class="btn btn-info" id="manageItemsBtn">⚙️ إدارة أصناف المستشفيات</button>
-    <button class="btn btn-info" id="manageExternalItemsBtn">⚙️ إدارة الأصناف الخارجية</button>
-    <button class="btn btn-orange" id="manageHospitalNamesBtn">🏥 إدارة أسماء المستشفيات</button>
-    <button class="btn btn-orange" id="manageExternalCustomersBtn">🏢 إدارة العملاء الخارجيين</button>
-    <button class="btn btn-success-dark" id="exportBackupBtn">💾 تصدير نسخة احتياطية</button>
-    <button class="btn btn-warning" onclick="document.getElementById('backupFileInput').click()">📂 استعادة نسخة احتياطية</button>
+<!-- شريط علوي يظهر فقط في الهواتف المحمولة -->
+<div class="mobile-header-bar no-print">
+    <div class="mobile-title">FONDANT CHOCO</div>
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+        <span>☰ قائمة الخيارات</span>
+    </button>
+</div>
+
+<!-- خلفية معتمة للقائمة الجانبية في الجوال -->
+<div class="mobile-backdrop no-print" onclick="toggleMobileSidebar()"></div>
+
+<!-- الشريط الجانبي -->
+<div class="top-bar no-print" id="sidebarMenu">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+        <span style="font-weight: bold; font-size: 13px; color: #333;">خيارات النظام</span>
+        <button class="btn btn-danger" style="width: auto; padding: 3px 8px; font-size: 11px;" onclick="toggleMobileSidebar()">إغلاق ✖</button>
+    </div>
+    <button class="btn btn-primary" onclick="toggleMobileSidebar(); document.getElementById('saveAndExportBtn').click();">💾 حفظ وتصدير PDF وتالي</button>
+    <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('viewInvoicesBtn').click();">📂 الفواتير المحفوظة</button>
+    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('statementBtn').click();">📊 كشف حساب عميل</button>
+    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('reportBtn').click();">📈 تقرير الفواتير</button>
+    <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageItemsBtn').click();">⚙️ إدارة أصناف المستشفيات</button>
+    <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageExternalItemsBtn').click();">⚙️ إدارة الأصناف الخارجية</button>
+    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('manageHospitalNamesBtn').click();">🏥 إدارة أسماء المستشفيات</button>
+    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('manageExternalCustomersBtn').click();">🏢 إدارة العملاء الخارجيين</button>
+    <button class="btn btn-success-dark" onclick="toggleMobileSidebar(); document.getElementById('exportBackupBtn').click();">💾 تصدير نسخة احتياطية</button>
+    <button class="btn btn-warning" onclick="toggleMobileSidebar(); document.getElementById('backupFileInput').click();">📂 استعادة نسخة احتياطية</button>
     <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="importBackup(event)">
-    <button class="btn btn-secondary" id="viewLogsBtn">📜 سجل الحركات</button>
-    <button class="btn btn-danger" id="clearInvoiceBtn">🗑️ إعادة تحميل كل الاصناف للفاتورة</button>
+    <button class="btn btn-secondary" onclick="toggleMobileSidebar(); document.getElementById('viewLogsBtn').click();">📜 سجل الحركات</button>
+    <button class="btn btn-danger" onclick="toggleMobileSidebar(); document.getElementById('clearInvoiceBtn').click();">🗑️ إعادة تحميل كل الاصناف للفاتورة</button>
+</div>
+
+<!-- أزرار حقيقية مخفية يتم تفعيلها من الشريط الجانبي أو قائمة الموبايل -->
+<div style="display:none;">
+    <button id="saveAndExportBtn">حفظ وتصدير</button>
+    <button id="viewInvoicesBtn">الفواتير المحفوظة</button>
+    <button id="statementBtn">كشف حساب</button>
+    <button id="reportBtn">تقرير</button>
+    <button id="manageItemsBtn">أصناف مستشفيات</button>
+    <button id="manageExternalItemsBtn">أصناف خارجية</button>
+    <button id="manageHospitalNamesBtn">أسماء مستشفيات</button>
+    <button id="manageExternalCustomersBtn">عملاء خارجيين</button>
+    <button id="exportBackupBtn">نسخة احتياطية</button>
+    <button id="viewLogsBtn">سجل الحركات</button>
+    <button id="clearInvoiceBtn">إعادة تحميل</button>
 </div>
 
 <div class="invoice-system">
@@ -807,6 +880,12 @@
 </a>
 
 <script>
+    // دالة فتح وإغلاق قائمة الجوال الجانبية
+    function toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebarMenu');
+        sidebar.classList.toggle('mobile-open');
+    }
+
     function openModal(id) {
         document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
         document.getElementById(id).style.display = 'flex';
@@ -888,7 +967,6 @@
         addLogEntry("تم تصدير نسخة احتياطية لبيانات النظام بنجاح.", false);
         alert("تم تحميل النسخة الاحتياطية بنجاح!");
     }
-    document.getElementById('exportBackupBtn').addEventListener('click', exportBackup);
 
     function importBackup(event) {
         const file = event.target.files[0];
@@ -933,7 +1011,6 @@
     let hospitalCustomersDB = loadHospitalCustomers().map(c => toCapitalTitleCase(c));
     let externalCustomersDB = [];
 
-    /* العملاء الخارجيون: كل البيانات {name, phone, area, block, street, jeda, home} */
     function loadExternalCustomersMeta() {
         const stored = localStorage.getItem('fondant_external_customers_meta');
         if (stored) { try { const arr = JSON.parse(stored); if (Array.isArray(arr)) return arr; } catch(e){} }
@@ -1059,7 +1136,6 @@
         }
     });
 
-    /* البحث التلقائي بالموبايل عند إدخاله (يعبّي كل البيانات) */
     customerPhone.addEventListener('blur', function() {
         const phone = this.value.trim();
         if (!phone) return;
@@ -1270,7 +1346,6 @@
         localStorage.setItem('fondant_logs', JSON.stringify(logs));
     }
 
-    /* سجل الحركات */
     document.getElementById('viewLogsBtn').addEventListener('click', () => {
         requestPassword('أدخل كلمة المرور لسجل الحركات', '123321', () => {
             const tbody = document.getElementById('logsList');
@@ -1352,7 +1427,6 @@
         finally { document.body.removeChild(temp); }
     }
 
-    /* حفظ وتصدير الفاتورة */
     document.getElementById('saveAndExportBtn').addEventListener('click', async function() {
         if(!customerInput.value.trim()) { alert("يرجى إدخال اسم العميل أولاً."); return; }
 
@@ -1366,7 +1440,6 @@
             return;
         }
 
-        /* فحص رسوم التوصيل في الفاتورة الخارجية */
         if (invoiceType === 'external') {
             const currentFee = parseFloat(deliveryFeeInput.value) || 0;
             if (currentFee <= 0) {
@@ -1430,7 +1503,6 @@
         savedInvoices.push(newInvoiceData);
         localStorage.setItem('fondant_saved_invoices', JSON.stringify(savedInvoices));
 
-        /* حفظ/تحديث العميل الخارجي بكل بياناته */
         if (invoiceType === 'external' && (custName || phoneVal)) {
             let existing = null;
             if (phoneVal) existing = externalCustomersMeta.find(c => c.phone === phoneVal);
@@ -1555,7 +1627,6 @@
         }
     }
 
-    /* كشف الحساب */
     document.getElementById('statementBtn').addEventListener('click', () => {
         const datalist = document.getElementById('allCustomersList');
         datalist.innerHTML = '';
@@ -1711,7 +1782,6 @@
         addLogEntry(`تم تصدير كشف الحساب للعميل ( ${customer} ) بصيغة PDF.`, false);
     }
 
-    /* تقرير الفواتير */
     document.getElementById('reportBtn').addEventListener('click', () => {
         const now = new Date();
         const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1839,7 +1909,6 @@
         addLogEntry('تم تصدير تقرير الفواتير بصيغة PDF.', false);
     }
 
-    /* إدارة الأصناف */
     document.getElementById('manageItemsBtn').addEventListener('click', () => {
         currentItemsModalMode = 'hospital';
         document.getElementById('itemsModalTitle').innerText = 'إدارة أصناف المستشفيات';
@@ -1927,7 +1996,6 @@
         if (document.querySelectorAll('#invoiceRows tr').length === 0) populateAllDefaultItems();
     }
 
-    /* إدارة أسماء المستشفيات */
     document.getElementById('manageHospitalNamesBtn').addEventListener('click', () => {
         renderHospitalNames();
         openModal('hospitalNamesModal');
@@ -1983,7 +2051,6 @@
         addLogEntry(`تم تعديل قائمة أسماء المستشفيات ( ${newNames.length} اسم )`, false);
     }
 
-    /* إدارة العملاء الخارجيين - كل البيانات */
     document.getElementById('manageExternalCustomersBtn').addEventListener('click', () => {
         renderExternalCustomers();
         openModal('externalCustomersModal');
