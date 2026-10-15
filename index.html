@@ -162,7 +162,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             display: none; text-align: right;
         }
-        /* ========== تعديل: تلوين + تكبير قائمة الأصناف المنسدلة 50% ========== */
         .autocomplete-item {
             padding: 10px 14px; cursor: pointer;
             border-bottom: 1px solid #c8e6c9; font-size: 19.5px;
@@ -177,18 +176,13 @@
             box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
         }
         #customerList .autocomplete-item {
-            font-size: 19.5px;
-            font-weight: 900;
-            background: #e3f2fd;
-            color: #0d47a1;
-            padding: 12px 16px;
-            border-bottom: 1px solid #90caf9;
+            font-size: 19.5px; font-weight: 900;
+            background: #e3f2fd; color: #0d47a1;
+            padding: 12px 16px; border-bottom: 1px solid #90caf9;
             letter-spacing: 0.5px;
         }
         #customerList .autocomplete-item:hover {
-            background: #1976d2;
-            color: #ffffff;
-            font-weight: 900;
+            background: #1976d2; color: #ffffff; font-weight: 900;
         }
 
         .items-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; direction: ltr; table-layout: fixed; }
@@ -208,7 +202,6 @@
         }
         .items-table td.prod-cell input { text-align: left; text-transform: capitalize; font-size: 22px !important; }
 
-        /* ========== تعديل: محاذاة البحث في المرتجعات للمنتصف ========== */
         #returnsRows td.prod-cell input { text-align: center !important; }
 
         .items-table th:nth-child(1) { width: auto; }
@@ -223,9 +216,7 @@
         .row-total { font-size: 15px !important; font-weight: 900 !important; color: #000; text-align: right !important; padding-right: 8px; }
 
         #invoiceRows tr.row-active td,
-        #returnsRows tr.row-active td {
-            background: #fff59d !important;
-        }
+        #returnsRows tr.row-active td { background: #fff59d !important; }
 
         .qty-cell { cursor: text; }
 
@@ -244,11 +235,8 @@
             display: flex; flex-direction: column; gap: 8px;
         }
         .total-line {
-            display: grid;
-            grid-template-columns: 125px 1fr auto;
-            align-items: center;
-            gap: 8px;
-            direction: ltr;
+            display: grid; grid-template-columns: 125px 1fr auto;
+            align-items: center; gap: 8px; direction: ltr;
         }
         .total-label-en {
             font-size: 14px; color: #000; font-weight: bold;
@@ -300,9 +288,7 @@
             padding-bottom: 10px; margin-bottom: 15px;
         }
         .modal-header h3 { margin: 0; }
-        .modal-header .header-actions {
-            display: flex; gap: 8px; flex-wrap: wrap;
-        }
+        .modal-header .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .saved-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .saved-table th, .saved-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         .saved-table th { background: #f8f9fa; }
@@ -481,6 +467,8 @@
     <button class="btn btn-warning" onclick="toggleMobileSidebar(); document.getElementById('backupFileInput').click();">📂 استعادة نسخة احتياطية</button>
     <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="importBackup(event)">
     <button class="btn btn-secondary" onclick="toggleMobileSidebar(); document.getElementById('viewLogsBtn').click();">📜 سجل الحركات</button>
+    <!-- ========== الزر الجديد لتحديث أسماء الأصناف دون فقد البيانات ========== -->
+    <button class="btn btn-primary" style="background:#1976d2;" onclick="toggleMobileSidebar(); forceUpdateItemNames();">🔄 تحديث أسماء الأصناف (دون فقد البيانات)</button>
     <button class="btn btn-danger" onclick="toggleMobileSidebar(); document.getElementById('clearInvoiceBtn').click();">🗑️ إعادة تحميل كل الاصناف للفاتورة</button>
 </div>
 
@@ -574,7 +562,6 @@
             <button type="button" class="add-row-btn no-print" id="addItemBtn">+ إضافة صنف إضافي</button>
 
             <div style="margin-top: 15px; margin-bottom: 10px; border-top: 2px dashed #000;"></div>
-            <!-- ========== تعديل: عنوان المرتجعات بحجم أكبر وخلفية حمراء فاتحة ========== -->
             <div style="font-weight: bold; font-size: 18.2px; margin-bottom: 8px; background: #ffcdd2; padding: 6px 12px; border-radius: 4px; display: inline-block;">المرتجعات / Returns</div>
 
             <table class="items-table returns-table" id="returnsTable">
@@ -991,7 +978,7 @@
     }
     let externalCustomersMeta = loadExternalCustomersMeta();
 
-    // ========== تعديل: تصحيح أسماء الأصناف (الإبقاء على Croll/كرول كما هي) ==========
+    // ========== الأصناف الافتراضية (بعد التصحيح) ==========
     const defaultItemsDB = [
         { name: "SWEET GRAHAM", price: 0.600 },
         { name: "HALLOUM CROLL SANDWICH", price: 0.500 },
@@ -1031,12 +1018,9 @@
         { name: "Taco Mix Box - تاكو ميكس بوكس", price: 8.000 }
     ];
 
-    // ==== ترحيل تلقائي للأسماء القديمة المحفوظة في localStorage ====
+    // ========== دالة ترحيل أسماء الأصناف (تعمل في كل مرة، مطابقة بحالة الأحرف الكبيرة) ==========
     function migrateItemNames() {
-        const VERSION_KEY = 'fondant_items_version';
-        const CURRENT_VERSION = '2026-01-name-fix';
-        if (localStorage.getItem(VERSION_KEY) === CURRENT_VERSION) return;
-
+        // خريطة الأسماء القديمة → الجديدة (المفاتيح بحروف كبيرة)
         const nameMap = {
             'HALLOM CROLL SANDWITCH': 'HALLOUM CROLL SANDWICH',
             'TURKEY CROLL SANDWITCH': 'TURKEY CROLL SANDWICH',
@@ -1051,32 +1035,70 @@
             'SAFRAN CAKE': 'SAFFRON CAKE',
             'STRAWBERRY CHEEZ CAKE': 'STRAWBERRY CHEESECAKE'
         };
-        const extMap = {
-            'Belgian Chocolaaa - شوكولاتة بلجيكية': 'Belgian Chocolate - شوكولاتة بلجيكية',
-            'Broken Chocolate - شوكليت مكسر': 'Broken Chocolate - شوكولاتة مكسر',
-            'Swiss Chocolate Box - شوكولا سويسريه': 'Swiss Chocolate Box - شوكولا سويسرية',
-            'Taco Mix Box - تاكو ميكس بوكي': 'Taco Mix Box - تاكو ميكس بوكس'
+        const extNameMap = {
+            'BELGIAN CHOCOLAAA - شوكولاتة بلجيكية': 'BELGIAN CHOCOLATE - شوكولاتة بلجيكية',
+            'BROKEN CHOCOLATE - شوكليت مكسر': 'BROKEN CHOCOLATE - شوكولاتة مكسر',
+            'SWISS CHOCOLATE BOX - شوكولا سويسريه': 'SWISS CHOCOLATE BOX - شوكولا سويسرية',
+            'TACO MIX BOX - تاكو ميكس بوكي': 'TACO MIX BOX - تاكو ميكس بوكس'
         };
 
+        let changedCount = 0;
+
+        // 1) أصناف المستشفيات
         const stored = localStorage.getItem('fondant_items');
         if (stored) {
             try {
                 const items = JSON.parse(stored);
-                items.forEach(it => { if (nameMap[it.name]) it.name = nameMap[it.name]; });
+                items.forEach(it => {
+                    const key = (it.name || '').trim().toUpperCase();
+                    if (nameMap[key]) {
+                        it.name = toCapitalTitleCase(nameMap[key]);
+                        changedCount++;
+                    }
+                });
                 localStorage.setItem('fondant_items', JSON.stringify(items));
-            } catch(e) {}
+            } catch(e) { console.error('migrate hospital items error:', e); }
+        } else {
+            // إذا لم تكن محفوظة، لا حاجة للترحيل - الأصناف الافتراضية جديدة أصلاً
         }
+
+        // 2) الأصناف الخارجية
         const storedExt = localStorage.getItem('fondant_external_items');
         if (storedExt) {
             try {
                 const items = JSON.parse(storedExt);
-                items.forEach(it => { if (extMap[it.name]) it.name = extMap[it.name]; });
+                items.forEach(it => {
+                    const key = (it.name || '').trim().toUpperCase();
+                    if (extNameMap[key]) {
+                        it.name = extNameMap[key]; // لا نستخدم toCapitalTitleCase للعربية
+                        changedCount++;
+                    }
+                });
                 localStorage.setItem('fondant_external_items', JSON.stringify(items));
-            } catch(e) {}
+            } catch(e) { console.error('migrate external items error:', e); }
         }
-        localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+
+        return { changed: changedCount };
     }
-    migrateItemNames();
+
+    // دالة الزر اليدوي
+    function forceUpdateItemNames() {
+        if (!confirm('سيتم تحديث أسماء الأصناف المخزّنة إلى الأسماء المصححة.\n\n⚠️ لن تتأثر الفواتير المحفوظة أو أي بيانات أخرى.\n\nهل تريد المتابعة؟')) return;
+        const result = migrateItemNames();
+        if (result.changed > 0) {
+            alert(`✅ تم تحديث ${result.changed} صنف بنجاح!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
+            addLogEntry(`تم تحديث أسماء الأصناف يدوياً ( ${result.changed} تعديل )`, false);
+            location.reload();
+        } else {
+            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً.');
+        }
+    }
+
+    // تنفيذ الترحيل تلقائياً عند فتح الصفحة
+    const migrationResult = migrateItemNames();
+    if (migrationResult.changed > 0) {
+        console.log(`تم تحديث ${migrationResult.changed} اسم صنف تلقائياً.`);
+    }
 
     function loadHospitalItemsDB() {
         const stored = localStorage.getItem('fondant_items');
@@ -1311,7 +1333,6 @@
         const prodList = tr.querySelector('.prod-list');
         initAutocomplete(prodInput, prodList, null);
 
-        // ========== تعديل: تحديد النص عند الوقوف في حقل البحث بالمرتجعات ==========
         prodInput.addEventListener('focus', function() {
             const self = this;
             setTimeout(function() {
@@ -1690,7 +1711,6 @@
         openModal('savedInvoicesModal');
     });
 
-    // ============ تعديل: إلغاء آخر فاتورة مع إعادة الرقم للاستخدام ============
     function cancelLastInvoice() {
         requestPassword('أدخل كلمة المرور لإلغاء آخر فاتورة', '123321', () => {
             const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
@@ -1713,10 +1733,8 @@
             const newSaved = saved.filter(inv => parseInt(inv.number) !== parseInt(lastInv.number));
             localStorage.setItem('fondant_saved_invoices', JSON.stringify(newSaved));
 
-            // إعادة الرقم الملغي للاستخدام: storedLast = cancelled - 1
             localStorage.setItem('fondant_last_inv_num', parseInt(lastInv.number) - 1);
 
-            // تحديث الحقل الظاهر
             currentInvoiceNum = getExpectedNextInvoiceNumber();
             invoiceNumberInput.value = currentInvoiceNum;
 
