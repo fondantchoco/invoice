@@ -956,19 +956,55 @@
         return str.toLowerCase().replace(/(?:^|\s|-)\w/g, function(match) { return match.toUpperCase(); });
     }
 
-    const defaultHospitalCustomers = [
+    // ========== الأسماء القديمة (للترحيل فقط - لا تُستخدم في العرض) ==========
+    const OLD_DEFAULT_HOSPITAL_CUSTOMERS = [
         "ADAN", "JAHRA", "AL RAZI", "HYA", "HICHAM", "AHMAD", "NBK", 
         "PHSYALOGY", "HIE UNIVERSITY", "HEALTH SCIENCE", "TECHNOLOGH GIRLS", 
         "NEW RAZI", "EDMAN", "M OF HEALTH", "AL OMOMA"
     ];
 
+    // ========== الأسماء الجديدة الكاملة (من ملف Excel - العمود B) ==========
+    const defaultHospitalCustomers = [
+        "Al-Adan Hospital",
+        "Al-Jahra Hospital",
+        "Al-Razi Hospital",
+        "Hya Elhabib Hospital",
+        "Hisham Al-Sager Hospital",
+        "Hamed Al-Eissa Hospital",
+        "NBK Hospital",
+        "Physiology Hospital",
+        "Higher Institute of Energy - HIE",
+        "College of Health Sciences - Boys",
+        "College of Technological Studies - Girls",
+        "New Al-Razi Hospital",
+        "Addiction Treatment Center - ATC",
+        "Ministry of Health",
+        "Al Omooma Hospital"
+    ];
+
     function loadHospitalCustomers() {
         const stored = localStorage.getItem('fondant_hospital_customers');
-        if (stored) { try { const arr = JSON.parse(stored); if (Array.isArray(arr) && arr.length) return arr; } catch(e){} }
+        if (stored) { 
+            try { 
+                const arr = JSON.parse(stored); 
+                if (Array.isArray(arr) && arr.length) {
+                    // إذا كانت البيانات المحفوظة هي الأسماء القديمة (لم يتم تخصيصها)
+                    // نقوم بترحيلها تلقائياً إلى الأسماء الجديدة من ملف Excel
+                    const isOldDefaults = arr.length === OLD_DEFAULT_HOSPITAL_CUSTOMERS.length && 
+                        arr.every((n, i) => (n || '').trim().toUpperCase() === OLD_DEFAULT_HOSPITAL_CUSTOMERS[i].toUpperCase());
+                    if (isOldDefaults) {
+                        localStorage.setItem('fondant_hospital_customers', JSON.stringify(defaultHospitalCustomers));
+                        return defaultHospitalCustomers;
+                    }
+                    return arr; // بيانات مخصصة - نحتفظ بها كما هي
+                }
+            } catch(e){} 
+        }
         return defaultHospitalCustomers;
     }
 
-    let hospitalCustomersDB = loadHospitalCustomers().map(c => toCapitalTitleCase(c));
+    // ملاحظة: أزلنا toCapitalTitleCase للحفاظ على الأسماء الرسمية مثل NBK / HIE / ATC
+    let hospitalCustomersDB = loadHospitalCustomers();
     let externalCustomersDB = [];
 
     function loadExternalCustomersMeta() {
@@ -978,7 +1014,7 @@
     }
     let externalCustomersMeta = loadExternalCustomersMeta();
 
-    // ========== الأصناف الافتراضية (بعد التصحيح) ==========
+    // ========== الأصناف الافتراضية ==========
     const defaultItemsDB = [
         { name: "SWEET GRAHAM", price: 0.600 },
         { name: "HALLOUM CROLL SANDWICH", price: 0.500 },
@@ -1018,9 +1054,8 @@
         { name: "Taco Mix Box - تاكو ميكس بوكس", price: 8.000 }
     ];
 
-    // ========== دالة ترحيل أسماء الأصناف (تعمل في كل مرة، مطابقة بحالة الأحرف الكبيرة) ==========
+    // ========== دالة ترحيل أسماء الأصناف ==========
     function migrateItemNames() {
-        // خريطة الأسماء القديمة → الجديدة (المفاتيح بحروف كبيرة)
         const nameMap = {
             'HALLOM CROLL SANDWITCH': 'HALLOUM CROLL SANDWICH',
             'TURKEY CROLL SANDWITCH': 'TURKEY CROLL SANDWICH',
@@ -1044,7 +1079,6 @@
 
         let changedCount = 0;
 
-        // 1) أصناف المستشفيات
         const stored = localStorage.getItem('fondant_items');
         if (stored) {
             try {
@@ -1058,11 +1092,8 @@
                 });
                 localStorage.setItem('fondant_items', JSON.stringify(items));
             } catch(e) { console.error('migrate hospital items error:', e); }
-        } else {
-            // إذا لم تكن محفوظة، لا حاجة للترحيل - الأصناف الافتراضية جديدة أصلاً
         }
 
-        // 2) الأصناف الخارجية
         const storedExt = localStorage.getItem('fondant_external_items');
         if (storedExt) {
             try {
@@ -1070,7 +1101,7 @@
                 items.forEach(it => {
                     const key = (it.name || '').trim().toUpperCase();
                     if (extNameMap[key]) {
-                        it.name = extNameMap[key]; // لا نستخدم toCapitalTitleCase للعربية
+                        it.name = extNameMap[key];
                         changedCount++;
                     }
                 });
@@ -1081,7 +1112,6 @@
         return { changed: changedCount };
     }
 
-    // دالة الزر اليدوي
     function forceUpdateItemNames() {
         if (!confirm('سيتم تحديث أسماء الأصناف المخزّنة إلى الأسماء المصححة.\n\n⚠️ لن تتأثر الفواتير المحفوظة أو أي بيانات أخرى.\n\nهل تريد المتابعة؟')) return;
         const result = migrateItemNames();
@@ -1094,7 +1124,6 @@
         }
     }
 
-    // تنفيذ الترحيل تلقائياً عند فتح الصفحة
     const migrationResult = migrateItemNames();
     if (migrationResult.changed > 0) {
         console.log(`تم تحديث ${migrationResult.changed} اسم صنف تلقائياً.`);
@@ -2194,7 +2223,7 @@
             const input = row.querySelector('.edit-hosp-name');
             if (input) {
                 const name = input.value.trim();
-                if (name) newNames.push(toCapitalTitleCase(name));
+                if (name) newNames.push(name);
             }
         });
         hospitalCustomersDB = newNames;
