@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="wicristdth=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FONDANT CHOCO - نظام الفواتير</title>
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -10,14 +10,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #eef2f5; font-family: 'Segoe UI', Arial, sans-serif; padding: 15px; padding-right: 210px; color: #111; }
-        .invoice-system { max-width: 950px; width: 100%; margin: 0 0 0 auto; }
+        .invoice-system { max-width: 1100px; width: 100%; margin: 0 0 0 auto; }
 
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
         #backupReminderBanner {
-            width: 100%; max-width: 950px; background: #ff9800; color: #fff;
+            width: 100%; max-width: 1100px; background: #ff9800; color: #fff;
             padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 14px;
             margin-bottom: 10px; display: none; justify-content: space-between;
             align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -76,13 +76,13 @@
 
         .header-top-row { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 5px; }
         .header-right-side {
-            text-align: center; font-size: 12px; font-weight: bold; color: #111;
+            text-align: center; font-size: 13.8px; font-weight: bold; color: #111;
             line-height: 1.4; display: flex; flex-direction: column;
             align-items: center; gap: 2px;
         }
         .header-line { display: flex; align-items: center; justify-content: center; gap: 5px; }
         .insta-icon { width: 22px; height: 22px; border-radius: 4px; }
-        .qr-code-img { width: 65px; height: 65px; margin-top: 5px; }
+        .qr-code-img { width: 71.5px; height: 71.5px; margin-top: 5px; }
 
         .header-center-logo { text-align: center; }
         .logo-img { height: 63px; width: auto; object-fit: contain; }
@@ -99,12 +99,12 @@
         .header-line-left { text-align: left; }
 
         .inv-no-badge {
-            font-size: 20px; font-weight: bold; color: #d32f2f;
+            font-size: 22px; font-weight: bold; color: #d32f2f;
             display: flex; align-items: center; justify-content: flex-start; gap: 6px;
         }
         #invoiceNumberInput {
-            border: none; border-bottom: 1.5px dotted #d32f2f; font-size: 20px;
-            font-weight: bold; color: #d32f2f; text-align: center; width: 90px;
+            border: none; border-bottom: 1.5px dotted #d32f2f; font-size: 22px;
+            font-weight: bold; color: #d32f2f; text-align: center; width: 95px;
             background: transparent; outline: none; font-family: Arial, sans-serif;
         }
         #invoiceNumberInput:focus { border-bottom-style: solid; }
@@ -122,13 +122,20 @@
         .dotted-input:focus { border-bottom-style: solid; border-color: #000; }
 
         #customerInput {
-            font-size: 1.1em !important; font-weight: 900 !important;
+            font-size: 1.045em !important; font-weight: 900 !important;
             color: #000; text-transform: capitalize; text-align: center !important;
+            width: 100%;
         }
 
         #customerPhone {
-            font-size: 15.6px !important;
+            font-size: 17.16px !important;
             font-weight: 900 !important;
+        }
+
+        #invoiceDate {
+            font-size: 17.16px !important;
+            /* تكبير مكان التاريخ 0.6 سم (حوالي 25 بكسل) */
+            width: 135px !important;
         }
 
         .address-grid { display: flex; gap: 5px; align-items: flex-end; width: 100%; }
@@ -204,7 +211,8 @@
 
         #returnsRows td.prod-cell input { text-align: center !important; }
 
-        .items-table th:nth-child(1) { width: auto; }
+        /* تقليل عرض عامود الصنف 3 سم (من المساحة التي تم سحبها من اسم العميل) */
+        .items-table th:nth-child(1) { width: 60%; }
         .items-table th:nth-child(2) { width: 2.35cm; }
         .items-table th:nth-child(3) { width: 1.80cm; }
         .items-table th:nth-child(4) { width: 1.65cm; }
@@ -226,7 +234,7 @@
             font-weight: bold; margin-bottom: 10px; font-size: 12px;
         }
 
-        .totals-section { display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 15px; direction: rtl; }
+        .totals-section { display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 2cm; direction: rtl; }
 
         .total-box {
             border: 2px solid #000; padding: 12px 18px;
@@ -364,17 +372,18 @@
         .pdf-mode .no-print { display: none !important; }
         .pdf-mode .dotted-input { border-bottom: 1.5px dotted #000 !important; }
         .pdf-mode #streetInput { border-bottom: 1.5px dotted #000 !important; }
-        .pdf-mode .items-table td { height: 24px; padding: 2px 4px; }
+        .pdf-mode .items-table td { height: 25.44px; padding: 2px 4px; }
         .pdf-mode .items-table td input { font-size: 13px !important; }
         .pdf-mode .row-total { font-size: 14px !important; }
-        .pdf-mode .items-table td.prod-cell input { font-size: 13.8px !important; }
+        .pdf-mode .items-table td.prod-cell input { font-size: 16.56px !important; }
         .pdf-mode #invoiceRows .qty-cell input { font-size: 18.5px !important; }
         .pdf-mode #returnsRows .qty-cell input { font-size: 20px !important; }
         .pdf-mode #deliveryFeeInput { font-size: 17.2px !important; width: 100px; }
         .pdf-mode #areaInput { font-size: 17.5px !important; }
         .pdf-mode .address-grid .dotted-input { font-size: 13.5px !important; }
         .pdf-mode #streetInput { font-size: 17.5px !important; }
-        .pdf-mode #customerPhone { font-size: 18.7px !important; }
+        .pdf-mode #customerPhone { font-size: 20.6px !important; }
+        .pdf-mode #invoiceDate { font-size: 20.6px !important; }
         .pdf-mode #invoiceRows tr.row-active td,
         .pdf-mode #returnsRows tr.row-active td { background: #ffffff !important; }
 
@@ -521,14 +530,15 @@
             <div class="fields-container">
                 <div class="field-line">
                     <span class="field-label">Mr./Mrs. :السيد / ة</span>
-                    <div class="autocomplete-wrapper" style="flex: 2;">
+                    <!-- تقليل مسافة اسم العميل من 15 إلى 6 -->
+                    <div class="autocomplete-wrapper" style="flex: 6;">
                         <input type="text" id="customerInput" class="dotted-input" placeholder="اختر/اكتب العميل...">
                         <div id="customerList" class="autocomplete-list"></div>
                     </div>
                     <span class="field-label" style="margin-right: 10px;">تليفون / Tel:</span>
-                    <input type="text" id="customerPhone" class="dotted-input" style="width: 150px;">
+                    <input type="text" id="customerPhone" class="dotted-input" style="width: 120px;">
                     <span class="field-label" style="margin-right: auto;">:تاريخ الطلب</span>
-                    <input type="date" id="invoiceDate" class="dotted-input" style="width: 125px; text-align: center;">
+                    <input type="date" id="invoiceDate" class="dotted-input" style="text-align: center;">
                 </div>
 
                 <div class="field-line address-grid">
@@ -560,21 +570,6 @@
 
             <button type="button" class="add-row-btn no-print" id="addItemBtn">+ إضافة صنف إضافي</button>
 
-            <div style="margin-top: 15px; margin-bottom: 10px; border-top: 2px dashed #000;"></div>
-            <div style="font-weight: bold; font-size: 18.2px; margin-bottom: 8px; background: #ffcdd2; padding: 6px 12px; border-radius: 4px; display: inline-block;">المرتجعات / Returns</div>
-
-            <table class="items-table returns-table" id="returnsTable">
-                <thead>
-                    <tr>
-                        <th>Description التفاصيل</th>
-                        <th>Qty الكمية</th>
-                        <th class="no-print"></th>
-                    </tr>
-                </thead>
-                <tbody id="returnsRows"></tbody>
-            </table>
-            <button type="button" class="add-row-btn no-print" id="addReturnBtn">+ إضافة صنف مرتجع</button>
-
             <div class="totals-section">
                 <div class="total-box">
                     <div class="total-line" id="subTotalLine">
@@ -594,6 +589,22 @@
                     </div>
                 </div>
             </div>
+
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div style="font-weight: bold; font-size: 25px; background: #ffcdd2; padding: 6px 12px; border-radius: 4px; display: inline-block;">المرتجعات / Returns</div>
+            </div>
+
+            <table class="items-table returns-table" id="returnsTable">
+                <thead>
+                    <tr>
+                        <th>Description التفاصيل</th>
+                        <th>Qty الكمية</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="returnsRows"></tbody>
+            </table>
+            <button type="button" class="add-row-btn no-print" id="addReturnBtn">+ إضافة صنف مرتجع</button>
 
             <div class="signatures-section">
                 <div>
@@ -955,14 +966,21 @@
         return str.toLowerCase().replace(/(?:^|\s|-)\w/g, function(match) { return match.toUpperCase(); });
     }
 
-    // ========== الأسماء القديمة (للترحيل فقط - لا تُستخدم في العرض) ==========
+    function getTomorrowDateString() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
     const OLD_DEFAULT_HOSPITAL_CUSTOMERS = [
         "ADAN", "JAHRA", "AL RAZI", "HYA", "HICHAM", "AHMAD", "NBK", 
         "PHSYALOGY", "HIE UNIVERSITY", "HEALTH SCIENCE", "TECHNOLOGH GIRLS", 
         "NEW RAZI", "EDMAN", "M OF HEALTH", "AL OMOMA"
     ];
 
-    // ========== الأسماء الجديدة الكاملة (من ملف Excel - العمود B) ==========
     const defaultHospitalCustomers = [
         "Al-Adan Hospital",
         "Al-Jahra Hospital",
@@ -1010,7 +1028,6 @@
     }
     let externalCustomersMeta = loadExternalCustomersMeta();
 
-    // ========== الأصناف الافتراضية ==========
     const defaultItemsDB = [
         { name: "SWEET GRAHAM", price: 0.600 },
         { name: "HALLOUM CROLL SANDWICH", price: 0.500 },
@@ -1037,10 +1054,9 @@
         { name: "CHOCOLATE BOX", price: 3.500 },
         { name: "KINDER CHOCOLATE", price: 3.500 },
         { name: "VIP CHOCOLATE", price: 3.500 },
-        // ===== الأصناف الجديدة المضافة =====
-        { name: "wood Baby", price: 11.000 },
         { name: "Crystal Baby", price: 8.000 },
-        { name: "Regular Crystal", price: 8.000 }
+        { name: "Regular Crystal", price: 8.000 },
+        { name: "wood Baby", price: 11.000 }
     ];
 
     const defaultExternalItemsDB = [
@@ -1054,14 +1070,12 @@
         { name: "Taco Mix Box - تاكو ميكس بوكس", price: 8.000 }
     ];
 
-    // ========== قائمة الأصناف الجديدة التي يجب ضمان وجودها ==========
     const NEW_MUST_HAVE_ITEMS = [
-        { name: "Cristal Baby", price: 8.000 },
-        { name: "wood Baby", price: 11.000 },
-        { name: "Regular Cristal", price: 8.000 }
+        { name: "Crystal Baby", price: 8.000 },
+        { name: "Regular Crystal", price: 8.000 },
+        { name: "wood Baby", price: 11.000 }
     ];
 
-    // ========== دالة ترحيل أسماء الأصناف ==========
     function migrateItemNames() {
         const nameMap = {
             'HALLOM CROLL SANDWITCH': 'HALLOUM CROLL SANDWICH',
@@ -1119,53 +1133,76 @@
         return { changed: changedCount };
     }
 
-    // ========== ترحيل إضافة الأصناف الجديدة (Cristal Baby / wood Baby / Regular Cristal) ==========
     function migrateAddNewItems() {
         let addedCount = 0;
+        let renamedCount = 0;
         const stored = localStorage.getItem('fondant_items');
-        if (!stored) return { added: 0 }; // لا توجد قائمة محفوظة -> ستُستخدم الافتراضية تلقائياً
+        if (!stored) return { added: 0, renamed: 0 };
 
         try {
-            const items = JSON.parse(stored);
-            if (!Array.isArray(items)) return { added: 0 };
-            const existingNames = new Set(items.map(i => (i.name || '').trim().toLowerCase()));
-            NEW_MUST_HAVE_ITEMS.forEach(ni => {
-                if (!existingNames.has(ni.name.toLowerCase())) {
-                    items.push({ name: ni.name, price: ni.price });
-                    existingNames.add(ni.name.toLowerCase());
-                    addedCount++;
-                }
+            let items = JSON.parse(stored);
+            if (!Array.isArray(items)) return { added: 0, renamed: 0 };
+
+            items.forEach(it => {
+                const n = (it.name || '').trim();
+                if (/^cristal\s+baby$/i.test(n)) { it.name = 'Crystal Baby'; renamedCount++; }
+                else if (/^regular\s+cristal$/i.test(n)) { it.name = 'Regular Crystal'; renamedCount++; }
             });
-            if (addedCount > 0) {
-                localStorage.setItem('fondant_items', JSON.stringify(items));
-            }
+
+            const isCrystalBaby = n => /^crystal\s+baby$/i.test(n);
+            const isRegularCrystal = n => /^regular\s+crystal$/i.test(n);
+            const isWoodBaby = n => /^wood\s+baby$/i.test(n);
+
+            const crystalBabyItem = items.find(i => isCrystalBaby((i.name || '').trim()));
+            const regularCrystalItem = items.find(i => isRegularCrystal((i.name || '').trim()));
+            const woodBabyItem = items.find(i => isWoodBaby((i.name || '').trim()));
+
+            items = items.filter(i => {
+                const n = (i.name || '').trim();
+                return !(isCrystalBaby(n) || isRegularCrystal(n) || isWoodBaby(n));
+            });
+
+            const finalCrystalBaby = crystalBabyItem || { name: 'Crystal Baby', price: 8.000 };
+            const finalRegularCrystal = regularCrystalItem || { name: 'Regular Crystal', price: 8.000 };
+            const finalWoodBaby = woodBabyItem || { name: 'wood Baby', price: 11.000 };
+
+            if (!crystalBabyItem) addedCount++;
+            if (!regularCrystalItem) addedCount++;
+            if (!woodBabyItem) addedCount++;
+
+            finalCrystalBaby.name = 'Crystal Baby';
+            finalRegularCrystal.name = 'Regular Crystal';
+            finalWoodBaby.name = 'wood Baby';
+
+            items.push(finalCrystalBaby, finalRegularCrystal, finalWoodBaby);
+
+            localStorage.setItem('fondant_items', JSON.stringify(items));
         } catch(e) { console.error('migrateAddNewItems error:', e); }
 
-        return { added: addedCount };
+        return { added: addedCount, renamed: renamedCount };
     }
 
     function forceUpdateItemNames() {
         if (!confirm('سيتم تحديث أسماء الأصناف المخزّنة إلى الأسماء المصححة.\n\n⚠️ لن تتأثر الفواتير المحفوظة أو أي بيانات أخرى.\n\nهل تريد المتابعة؟')) return;
         const result = migrateItemNames();
-        const newAdded = migrateAddNewItems();
-        const totalChanged = result.changed + newAdded.added;
+        const newItemsMigration = migrateAddNewItems();
+        const totalChanged = result.changed + newItemsMigration.added + newItemsMigration.renamed;
         if (totalChanged > 0) {
-            alert(`✅ تم تحديث ${result.changed} اسم صنف وإضافة ${newAdded.added} صنف جديد!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
-            addLogEntry(`تم تحديث أسماء الأصناف يدوياً ( ${result.changed} تعديل ) وإضافة ${newAdded.added} صنف جديد`, false);
+            alert(`✅ تم تحديث ${result.changed} اسم صنف، وإعادة تسمية ${newItemsMigration.renamed} صنف (Cristal→Crystal)، وإضافة ${newItemsMigration.added} صنف جديد!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
+            addLogEntry(`تم تحديث أسماء الأصناف يدوياً (${result.changed} تعديل) + إعادة تسمية ${newItemsMigration.renamed} + إضافة ${newItemsMigration.added}`, false);
             location.reload();
         } else {
-            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً والأصناف الجديدة موجودة.');
+            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً والأصناف الجديدة موجودة بالترتيب الصحيح.');
         }
     }
 
-    // تشغيل الترحيلات تلقائياً عند التحميل
     const migrationResult = migrateItemNames();
     if (migrationResult.changed > 0) {
         console.log(`تم تحديث ${migrationResult.changed} اسم صنف تلقائياً.`);
     }
     const newItemsMigration = migrateAddNewItems();
-    if (newItemsMigration.added > 0) {
-        console.log(`تمت إضافة ${newItemsMigration.added} صنف جديد تلقائياً.`);
+    if (newItemsMigration.added > 0 || newItemsMigration.renamed > 0) {
+        console.log(`تمت إضافة ${newItemsMigration.added} صنف جديد وإعادة تسمية ${newItemsMigration.renamed} صنف تلقائياً.`);
     }
 
     function loadHospitalItemsDB() {
@@ -1198,7 +1235,7 @@
     const streetInput = document.getElementById('streetInput');
 
     const today = new Date().toISOString().split('T')[0];
-    invoiceDateInput.value = today;
+    invoiceDateInput.value = getTomorrowDateString();
 
     streetInput.addEventListener('paste', function(e) {
         e.preventDefault();
@@ -1351,8 +1388,49 @@
         const qtyCell = tr.querySelector('.qty-cell');
 
         initAutocomplete(prodInput, prodList, (item) => {
-            priceInput.value = item.price.toFixed(3);
-            calculateRowTotal(tr);
+            // منع تكرار الصنف في الفاتورة
+            const existingRow = Array.from(document.querySelectorAll('#invoiceRows tr')).find(row => {
+                if (row === tr) return false;
+                return row.querySelector('.prod-input').value.trim().toLowerCase() === item.name.toLowerCase();
+            });
+
+            if (existingRow) {
+                alert(`⚠️ الصنف "${item.name}" مضاف مسبقاً في الفاتورة.\nسيتم الانتقال إلى الصنف الأصلي.`);
+                existingRow.querySelector('.qty-input').focus();
+                existingRow.classList.add('row-active');
+                setTimeout(() => existingRow.classList.remove('row-active'), 2000);
+                prodInput.value = '';
+                priceInput.value = '0.000';
+                calculateRowTotal(tr);
+            } else {
+                priceInput.value = item.price.toFixed(3);
+                calculateRowTotal(tr);
+            }
+        });
+
+        // التحقق من التكرار عند الكتابة اليدوية
+        prodInput.addEventListener('change', function() {
+            const typedName = this.value.trim().toLowerCase();
+            if (!typedName) return;
+            const matchedItem = getActiveItemsDB().find(i => i.name.toLowerCase() === typedName);
+            if (matchedItem) {
+                const existingRow = Array.from(document.querySelectorAll('#invoiceRows tr')).find(row => {
+                    if (row === tr) return false;
+                    return row.querySelector('.prod-input').value.trim().toLowerCase() === typedName;
+                });
+                if (existingRow) {
+                    alert(`⚠️ الصنف "${matchedItem.name}" مضاف مسبقاً في الفاتورة.\nسيتم الانتقال إلى الصنف الأصلي.`);
+                    existingRow.querySelector('.qty-input').focus();
+                    existingRow.classList.add('row-active');
+                    setTimeout(() => existingRow.classList.remove('row-active'), 2000);
+                    this.value = '';
+                    priceInput.value = '0.000';
+                    calculateRowTotal(tr);
+                } else {
+                    priceInput.value = matchedItem.price.toFixed(3);
+                    calculateRowTotal(tr);
+                }
+            }
         });
 
         priceInput.addEventListener('input', () => calculateRowTotal(tr));
@@ -1399,7 +1477,45 @@
 
         const prodInput = tr.querySelector('.prod-input');
         const prodList = tr.querySelector('.prod-list');
-        initAutocomplete(prodInput, prodList, null);
+
+        initAutocomplete(prodInput, prodList, (item) => {
+            // منع تكرار الصنف في المرتجعات
+            const existingRow = Array.from(document.querySelectorAll('#returnsRows tr')).find(row => {
+                if (row === tr) return false;
+                return row.querySelector('.prod-input').value.trim().toLowerCase() === item.name.toLowerCase();
+            });
+
+            if (existingRow) {
+                alert(`⚠️ الصنف "${item.name}" مضاف مسبقاً في المرتجعات.\nسيتم الانتقال إلى الصنف الأصلي.`);
+                existingRow.querySelector('.qty-input').focus();
+                existingRow.classList.add('row-active');
+                setTimeout(() => existingRow.classList.remove('row-active'), 2000);
+                prodInput.value = '';
+            } else {
+                const returnQtyInput = tr.querySelector('.qty-input');
+                if (returnQtyInput) returnQtyInput.focus();
+            }
+        });
+
+        // التحقق من التكرار عند الكتابة اليدوية
+        prodInput.addEventListener('change', function() {
+            const typedName = this.value.trim().toLowerCase();
+            if (!typedName) return;
+            const matchedItem = getActiveItemsDB().find(i => i.name.toLowerCase() === typedName);
+            if (matchedItem) {
+                const existingRow = Array.from(document.querySelectorAll('#returnsRows tr')).find(row => {
+                    if (row === tr) return false;
+                    return row.querySelector('.prod-input').value.trim().toLowerCase() === typedName;
+                });
+                if (existingRow) {
+                    alert(`⚠️ الصنف "${matchedItem.name}" مضاف مسبقاً في المرتجعات.\nسيتم الانتقال إلى الصنف الأصلي.`);
+                    existingRow.querySelector('.qty-input').focus();
+                    existingRow.classList.add('row-active');
+                    setTimeout(() => existingRow.classList.remove('row-active'), 2000);
+                    this.value = '';
+                }
+            }
+        });
 
         prodInput.addEventListener('focus', function() {
             const self = this;
@@ -1480,6 +1596,7 @@
         returnsRows.innerHTML = '';
         customerInput.value = '';
         document.getElementById('deliveryFeeInput').value = '';
+        invoiceDateInput.value = (newType === 'hospital') ? getTomorrowDateString() : today;
         populateAllDefaultItems();
         updateGrandTotal();
         addLogEntry(`تم التبديل إلى ${newType === 'external' ? 'فاتورة خارجية' : 'فاتورة المستشفيات'}.`, false);
@@ -1746,6 +1863,7 @@
         document.getElementById('deliveryFeeInput').value = '';
         returnsRows.innerHTML = '';
         editingInvoiceNumber = null;
+        invoiceDateInput.value = (invoiceType === 'hospital') ? getTomorrowDateString() : today;
         populateAllDefaultItems();
     }
 
