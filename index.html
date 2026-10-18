@@ -467,7 +467,6 @@
     <button class="btn btn-warning" onclick="toggleMobileSidebar(); document.getElementById('backupFileInput').click();">📂 استعادة نسخة احتياطية</button>
     <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="importBackup(event)">
     <button class="btn btn-secondary" onclick="toggleMobileSidebar(); document.getElementById('viewLogsBtn').click();">📜 سجل الحركات</button>
-    <!-- ========== الزر الجديد لتحديث أسماء الأصناف دون فقد البيانات ========== -->
     <button class="btn btn-primary" style="background:#1976d2;" onclick="toggleMobileSidebar(); forceUpdateItemNames();">🔄 تحديث أسماء الأصناف (دون فقد البيانات)</button>
     <button class="btn btn-danger" onclick="toggleMobileSidebar(); document.getElementById('clearInvoiceBtn').click();">🗑️ إعادة تحميل كل الاصناف للفاتورة</button>
 </div>
@@ -988,22 +987,19 @@
             try { 
                 const arr = JSON.parse(stored); 
                 if (Array.isArray(arr) && arr.length) {
-                    // إذا كانت البيانات المحفوظة هي الأسماء القديمة (لم يتم تخصيصها)
-                    // نقوم بترحيلها تلقائياً إلى الأسماء الجديدة من ملف Excel
                     const isOldDefaults = arr.length === OLD_DEFAULT_HOSPITAL_CUSTOMERS.length && 
                         arr.every((n, i) => (n || '').trim().toUpperCase() === OLD_DEFAULT_HOSPITAL_CUSTOMERS[i].toUpperCase());
                     if (isOldDefaults) {
                         localStorage.setItem('fondant_hospital_customers', JSON.stringify(defaultHospitalCustomers));
                         return defaultHospitalCustomers;
                     }
-                    return arr; // بيانات مخصصة - نحتفظ بها كما هي
+                    return arr;
                 }
             } catch(e){} 
         }
         return defaultHospitalCustomers;
     }
 
-    // ملاحظة: أزلنا toCapitalTitleCase للحفاظ على الأسماء الرسمية مثل NBK / HIE / ATC
     let hospitalCustomersDB = loadHospitalCustomers();
     let externalCustomersDB = [];
 
@@ -1040,7 +1036,11 @@
         { name: "TIRAMISU CHEESECAKE", price: 0.500 },
         { name: "CHOCOLATE BOX", price: 3.500 },
         { name: "KINDER CHOCOLATE", price: 3.500 },
-        { name: "VIP CHOCOLATE", price: 3.500 }
+        { name: "VIP CHOCOLATE", price: 3.500 },
+        // ===== الأصناف الجديدة المضافة =====
+        { name: "Cristal Baby", price: 8.000 },
+        { name: "wood Baby", price: 11.000 },
+        { name: "Regular Cristal", price: 8.000 }
     ];
 
     const defaultExternalItemsDB = [
@@ -1052,6 +1052,13 @@
         { name: "Swiss Chocolate Box - شوكولا سويسرية", price: 9.750 },
         { name: "Nutella Croll - كرول نوتيلا", price: 2.000 },
         { name: "Taco Mix Box - تاكو ميكس بوكس", price: 8.000 }
+    ];
+
+    // ========== قائمة الأصناف الجديدة التي يجب ضمان وجودها ==========
+    const NEW_MUST_HAVE_ITEMS = [
+        { name: "Cristal Baby", price: 8.000 },
+        { name: "wood Baby", price: 11.000 },
+        { name: "Regular Cristal", price: 8.000 }
     ];
 
     // ========== دالة ترحيل أسماء الأصناف ==========
@@ -1112,21 +1119,53 @@
         return { changed: changedCount };
     }
 
+    // ========== ترحيل إضافة الأصناف الجديدة (Cristal Baby / wood Baby / Regular Cristal) ==========
+    function migrateAddNewItems() {
+        let addedCount = 0;
+        const stored = localStorage.getItem('fondant_items');
+        if (!stored) return { added: 0 }; // لا توجد قائمة محفوظة -> ستُستخدم الافتراضية تلقائياً
+
+        try {
+            const items = JSON.parse(stored);
+            if (!Array.isArray(items)) return { added: 0 };
+            const existingNames = new Set(items.map(i => (i.name || '').trim().toLowerCase()));
+            NEW_MUST_HAVE_ITEMS.forEach(ni => {
+                if (!existingNames.has(ni.name.toLowerCase())) {
+                    items.push({ name: ni.name, price: ni.price });
+                    existingNames.add(ni.name.toLowerCase());
+                    addedCount++;
+                }
+            });
+            if (addedCount > 0) {
+                localStorage.setItem('fondant_items', JSON.stringify(items));
+            }
+        } catch(e) { console.error('migrateAddNewItems error:', e); }
+
+        return { added: addedCount };
+    }
+
     function forceUpdateItemNames() {
         if (!confirm('سيتم تحديث أسماء الأصناف المخزّنة إلى الأسماء المصححة.\n\n⚠️ لن تتأثر الفواتير المحفوظة أو أي بيانات أخرى.\n\nهل تريد المتابعة؟')) return;
         const result = migrateItemNames();
-        if (result.changed > 0) {
-            alert(`✅ تم تحديث ${result.changed} صنف بنجاح!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
-            addLogEntry(`تم تحديث أسماء الأصناف يدوياً ( ${result.changed} تعديل )`, false);
+        const newAdded = migrateAddNewItems();
+        const totalChanged = result.changed + newAdded.added;
+        if (totalChanged > 0) {
+            alert(`✅ تم تحديث ${result.changed} اسم صنف وإضافة ${newAdded.added} صنف جديد!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
+            addLogEntry(`تم تحديث أسماء الأصناف يدوياً ( ${result.changed} تعديل ) وإضافة ${newAdded.added} صنف جديد`, false);
             location.reload();
         } else {
-            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً.');
+            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً والأصناف الجديدة موجودة.');
         }
     }
 
+    // تشغيل الترحيلات تلقائياً عند التحميل
     const migrationResult = migrateItemNames();
     if (migrationResult.changed > 0) {
         console.log(`تم تحديث ${migrationResult.changed} اسم صنف تلقائياً.`);
+    }
+    const newItemsMigration = migrateAddNewItems();
+    if (newItemsMigration.added > 0) {
+        console.log(`تمت إضافة ${newItemsMigration.added} صنف جديد تلقائياً.`);
     }
 
     function loadHospitalItemsDB() {
