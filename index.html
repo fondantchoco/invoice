@@ -7,6 +7,9 @@
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #eef2f5; font-family: 'Segoe UI', Arial, sans-serif; padding: 15px; padding-right: 210px; color: #111; }
@@ -134,7 +137,6 @@
 
         #invoiceDate {
             font-size: 17.16px !important;
-            /* تكبير مكان التاريخ 0.6 سم (حوالي 25 بكسل) */
             width: 135px !important;
         }
 
@@ -211,7 +213,6 @@
 
         #returnsRows td.prod-cell input { text-align: center !important; }
 
-        /* تقليل عرض عامود الصنف 3 سم (من المساحة التي تم سحبها من اسم العميل) */
         .items-table th:nth-child(1) { width: 60%; }
         .items-table th:nth-child(2) { width: 2.35cm; }
         .items-table th:nth-child(3) { width: 1.80cm; }
@@ -530,7 +531,6 @@
             <div class="fields-container">
                 <div class="field-line">
                     <span class="field-label">Mr./Mrs. :السيد / ة</span>
-                    <!-- تقليل مسافة اسم العميل من 15 إلى 6 -->
                     <div class="autocomplete-wrapper" style="flex: 6;">
                         <input type="text" id="customerInput" class="dotted-input" placeholder="اختر/اكتب العميل...">
                         <div id="customerList" class="autocomplete-list"></div>
@@ -673,6 +673,7 @@
             <button class="btn btn-primary" style="width: auto; padding: 8px 20px;" onclick="generateStatement()">🔍 عرض الكشف</button>
             <button class="btn btn-success" style="width: auto; padding: 8px 20px;" onclick="exportStatementPDF()">📄 تصدير PDF</button>
             <button class="btn btn-secondary" style="width: auto; padding: 8px 20px;" onclick="resetStatementFilters()">↻ تفريغ</button>
+            <button class="btn btn-info" style="width: auto; padding: 8px 20px; background: #17a2b8; margin-right: auto;" onclick="generateBabAlKhair()">🏢 كشف باب الخير (جميع فواتير المستشفيات)</button>
         </div>
         <div id="statementResultArea">
             <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
@@ -1388,7 +1389,6 @@
         const qtyCell = tr.querySelector('.qty-cell');
 
         initAutocomplete(prodInput, prodList, (item) => {
-            // منع تكرار الصنف في الفاتورة
             const existingRow = Array.from(document.querySelectorAll('#invoiceRows tr')).find(row => {
                 if (row === tr) return false;
                 return row.querySelector('.prod-input').value.trim().toLowerCase() === item.name.toLowerCase();
@@ -1408,7 +1408,6 @@
             }
         });
 
-        // التحقق من التكرار عند الكتابة اليدوية
         prodInput.addEventListener('change', function() {
             const typedName = this.value.trim().toLowerCase();
             if (!typedName) return;
@@ -1479,7 +1478,6 @@
         const prodList = tr.querySelector('.prod-list');
 
         initAutocomplete(prodInput, prodList, (item) => {
-            // منع تكرار الصنف في المرتجعات
             const existingRow = Array.from(document.querySelectorAll('#returnsRows tr')).find(row => {
                 if (row === tr) return false;
                 return row.querySelector('.prod-input').value.trim().toLowerCase() === item.name.toLowerCase();
@@ -1497,7 +1495,6 @@
             }
         });
 
-        // التحقق من التكرار عند الكتابة اليدوية
         prodInput.addEventListener('change', function() {
             const typedName = this.value.trim().toLowerCase();
             if (!typedName) return;
@@ -2008,6 +2005,173 @@
             </div>
         `;
     }
+
+    // ==========================================================
+    // دوال كشف "باب الخير" (Bab Al Khair) - إجمالي كل فاتورة
+    // ==========================================================
+    let lastBabAlKhairData = null;
+
+    function generateBabAlKhair() {
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const hospitalInvoices = saved.filter(inv => (inv.type || 'hospital') === 'hospital');
+
+        if (!hospitalInvoices.length) {
+            alert("No hospital invoices found in the system.");
+            return;
+        }
+
+        // Sort by date ascending
+        hospitalInvoices.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+        const tableData = [];
+        let grandTotal = 0;
+
+        hospitalInvoices.forEach(inv => {
+            const invTotal = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
+            grandTotal += invTotal;
+            tableData.push([
+                inv.number || '',
+                inv.date || '',
+                inv.customer || '',
+                invTotal.toFixed(3)
+            ]);
+        });
+
+        lastBabAlKhairData = { tableData, grandTotal };
+
+        let rowsHTML = '';
+        tableData.forEach(row => {
+            rowsHTML += `<tr>
+                <td style="padding: 6px; border: 1px solid #000;">${row[0]}</td>
+                <td style="padding: 6px; border: 1px solid #000;">${row[1]}</td>
+                <td style="padding: 6px; border: 1px solid #000; text-align: left;">${row[2]}</td>
+                <td style="padding: 6px; border: 1px solid #000; text-align: right; font-weight: bold;">${row[3]}</td>
+            </tr>`;
+        });
+
+        const html = `
+            <div class="no-print" style="text-align:center; margin-bottom: 15px;">
+                <button class="btn btn-success" style="width: auto; padding: 8px 20px; margin-right: 10px; display: inline-flex;" onclick="exportBabAlKhairPDF()">📄 Export PDF</button>
+                <button class="btn btn-warning" style="width: auto; padding: 8px 20px; display: inline-flex; color: #000;" onclick="exportBabAlKhairXLSX()">📊 Export XLSX</button>
+            </div>
+            ${buildStatementCompanyHeader()}
+            <div class="statement-title">
+                <h2>Statement of Account</h2>
+                <div class="sub">Customer: <b>Bab Al Khair</b></div>
+            </div>
+            <table class="statement-table" style="font-size: 14px; text-align: center;">
+                <thead>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Date</th>
+                        <th>Hospital</th>
+                        <th>Total Amount (KD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHTML}
+                </tbody>
+            </table>
+            <div class="statement-summary" style="margin-top: 10px;">
+                <div class="line total"><span>Grand Total:</span><span class="val" style="font-size:17.6px;">KD ${grandTotal.toFixed(3)}</span></div>
+            </div>
+        `;
+
+        document.getElementById('statementResultArea').innerHTML = html;
+        addLogEntry("تم إنشاء كشف باب الخير (Bab Al Khair) بنجاح.", false);
+    }
+
+    function exportBabAlKhairPDF() {
+        if (!lastBabAlKhairData) {
+            alert("Please generate the statement first.");
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4'); // Portrait, millimeters, A4
+
+        // Header
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("FONDANT CHOCO", 105, 15, { align: "center" });
+        
+        doc.setFontSize(12);
+        doc.text("Statement of Account", 105, 22, { align: "center" });
+        doc.text("Customer: Bab Al Khair", 105, 28, { align: "center" });
+
+        // Table (autoTable ensures header repeats on every page)
+        doc.autoTable({
+            startY: 35,
+            head: [['Invoice No', 'Date', 'Hospital', 'Total Amount (KD)']],
+            body: lastBabAlKhairData.tableData,
+            theme: 'grid',
+            styles: { 
+                font: 'helvetica', 
+                fontSize: 10, // مقاس مناسب
+                cellPadding: 2.5, 
+                halign: 'center'
+            },
+            headStyles: { 
+                fillColor: [40, 40, 40], 
+                textColor: [255, 255, 255], 
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            columnStyles: {
+                0: { cellWidth: 35 },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 'auto', halign: 'left' }, 
+                3: { cellWidth: 40, halign: 'right' }
+            },
+            didDrawPage: function (data) {
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(9);
+                doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber + ' of ' + pageCount, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            }
+        });
+
+        // Grand Total
+        let finalY = doc.lastAutoTable.finalY + 10;
+        if (finalY > 270) {
+            doc.addPage();
+            finalY = 20;
+        }
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total: KD ${lastBabAlKhairData.grandTotal.toFixed(3)}`, 200, finalY, { align: "right" });
+
+        doc.save(`Statement_Bab_Al_Khair_${new Date().toISOString().split('T')[0]}.pdf`);
+        addLogEntry("تم تصدير كشف باب الخير PDF.", false);
+    }
+
+    function exportBabAlKhairXLSX() {
+        if (!lastBabAlKhairData) {
+            alert("Please generate the statement first.");
+            return;
+        }
+        
+        const headers = ["Invoice No", "Date", "Hospital", "Total Amount (KD)"];
+        const data = [headers, ...lastBabAlKhairData.tableData];
+        
+        // Add Grand Total row
+        data.push(["", "", "Grand Total", lastBabAlKhairData.grandTotal.toFixed(3)]);
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Statement");
+        
+        const wscols = [
+            { wch: 15 }, // Invoice No
+            { wch: 15 }, // Date
+            { wch: 35 }, // Hospital
+            { wch: 20 }  // Total Amount
+        ];
+        ws['!cols'] = wscols;
+
+        XLSX.writeFile(wb, `Statement_Bab_Al_Khair_${new Date().toISOString().split('T')[0]}.xlsx`);
+        addLogEntry("تم تصدير كشف باب الخير XLSX.", false);
+    }
+    // ==========================================================
 
     function generateStatement() {
         const search = document.getElementById('statementCustomer').value.trim();
