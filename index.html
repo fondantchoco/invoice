@@ -7,9 +7,6 @@
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #eef2f5; font-family: 'Segoe UI', Arial, sans-serif; padding: 15px; padding-right: 210px; color: #111; }
@@ -69,13 +66,24 @@
         .invoice-type-btn.active { background: #17a2b8; color: #fff; }
         .invoice-type-btn:hover { background: #138496; color: #fff; }
 
+        .a4-page-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 0.6cm;
+            background: #fff;
+            margin: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
         .invoice-paper {
             background: white; border-radius: 2px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 0.5cm; margin: auto; display: flex; flex-direction: column;
-            min-height: 297mm; position: relative; border: 2px solid #222; width: 100%;
+            padding: 0.4cm; display: flex; flex-direction: column;
+            min-height: 100%; position: relative;
+            border: 2.5px solid #6c757d;
+            width: 100%; box-sizing: border-box;
         }
-        .invoice-content { flex: 1; padding: 0.15cm; }
+        .invoice-content { flex: 1; padding: 0.1cm; }
 
         .header-top-row { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 5px; }
         .header-right-side {
@@ -112,9 +120,11 @@
         }
         #invoiceNumberInput:focus { border-bottom-style: solid; }
 
-        .fields-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .field-line { display: flex; align-items: center; gap: 4px; width: 100%; }
-        .field-label { font-weight: bold; font-size: 12px; color: #222; white-space: nowrap; line-height: 1.4; }
+        .fields-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
+        .field-line { display: flex; align-items: center; gap: 6px; width: 100%; direction: ltr; }
+        
+        /* تكبير Invoice To و Date بنسبة 10% لتصبح 14.3px */
+        .field-label { font-weight: bold; font-size: 14.3px; color: #222; white-space: nowrap; line-height: 1.4; font-family: Arial, sans-serif; }
 
         .dotted-input {
             border: none; border-bottom: 1.5px dotted #444; font-size: 13px;
@@ -125,22 +135,15 @@
         .dotted-input:focus { border-bottom-style: solid; border-color: #000; }
 
         #customerInput {
-            font-size: 1.045em !important; font-weight: 900 !important;
+            font-size: 1.25em !important; font-weight: 900 !important;
             color: #000; text-transform: capitalize; text-align: center !important;
             width: 100%;
         }
 
-        #customerPhone {
-            font-size: 17.16px !important;
-            font-weight: 900 !important;
-        }
+        #customerPhone { font-size: 12.48px !important; font-weight: 900 !important; width: 86px !important; }
+        #invoiceDate { font-size: 15.44px !important; width: 125px !important; direction: ltr !important; }
 
-        #invoiceDate {
-            font-size: 17.16px !important;
-            width: 135px !important;
-        }
-
-        .address-grid { display: flex; gap: 5px; align-items: flex-end; width: 100%; }
+        .address-grid { display: flex; gap: 5px; align-items: flex-end; width: 100%; direction: rtl; }
         .address-grid .field-label { font-size: 10.5px; line-height: 1.3; white-space: nowrap; flex-shrink: 0; }
         .address-grid .dotted-input {
             font-size: 12px; padding: 2px 4px; line-height: 1.3;
@@ -183,6 +186,7 @@
             background: #e3f2fd;
             border: 2px solid #1976d2;
             box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
+            width: calc(100% + 2cm) !important;
         }
         #customerList .autocomplete-item {
             font-size: 19.5px; font-weight: 900;
@@ -235,7 +239,7 @@
             font-weight: bold; margin-bottom: 10px; font-size: 12px;
         }
 
-        .totals-section { display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 2cm; direction: rtl; }
+        .totals-section { display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 1.7cm; direction: rtl; }
 
         .total-box {
             border: 2px solid #000; padding: 12px 18px;
@@ -255,16 +259,22 @@
         .total-value-en {
             color: #d32f2f; font-weight: 900; font-size: 15px;
             font-family: Arial, sans-serif; white-space: nowrap;
-            text-align: right; direction: ltr;
+            text-align: center; direction: ltr;
         }
         .total-label-ar {
             font-size: 15px; color: #000; font-weight: bold;
             white-space: nowrap; font-family: 'Segoe UI', Arial, sans-serif;
             text-align: right; direction: rtl;
         }
+
+        .total-line.grand {
+            grid-template-columns: auto auto auto;
+            justify-content: center;
+            gap: 6px;
+        }
         .total-line.grand .total-label-en { font-size: 15px; }
         .total-line.grand .total-label-ar { font-size: 16.5px; }
-        .grand-total-value { font-size: 17.6px !important; color: #d32f2f; font-weight: 900; }
+        .grand-total-value { font-size: 17.6px !important; color: #d32f2f; font-weight: 900; padding: 0 4px; }
 
         #deliveryFeeInput {
             width: 85px; border: none; border-bottom: 1.5px dotted #444;
@@ -369,7 +379,8 @@
         }
         .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
 
-        .pdf-mode { padding: 0.5cm !important; box-shadow: none !important; border: 2px solid #222 !important; }
+        .pdf-mode { padding: 0.6cm !important; box-shadow: none !important; }
+        .pdf-mode .invoice-paper { border: 2.5px solid #6c757d !important; }
         .pdf-mode .no-print { display: none !important; }
         .pdf-mode .dotted-input { border-bottom: 1.5px dotted #000 !important; }
         .pdf-mode #streetInput { border-bottom: 1.5px dotted #000 !important; }
@@ -383,8 +394,11 @@
         .pdf-mode #areaInput { font-size: 17.5px !important; }
         .pdf-mode .address-grid .dotted-input { font-size: 13.5px !important; }
         .pdf-mode #streetInput { font-size: 17.5px !important; }
-        .pdf-mode #customerPhone { font-size: 20.6px !important; }
-        .pdf-mode #invoiceDate { font-size: 20.6px !important; }
+        .pdf-mode #customerPhone { font-size: 14.96px !important; width: 86px !important; }
+        .pdf-mode #invoiceDate { font-size: 18.54px !important; width: 125px !important; }
+        
+        .pdf-mode .grand-total-value { font-size: 20.24px !important; }
+
         .pdf-mode #invoiceRows tr.row-active td,
         .pdf-mode #returnsRows tr.row-active td { background: #ffffff !important; }
 
@@ -424,6 +438,7 @@
         @media (max-width: 768px) {
             body { padding-right: 15px !important; padding-top: 65px; }
             .invoice-system { margin: 0 auto; }
+            .a4-page-wrapper { width: 100%; min-height: auto; padding: 5px; }
             .mobile-header-bar {
                 display: flex; position: fixed; top: 0; left: 0; right: 0;
                 height: 52px; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.12);
@@ -502,123 +517,130 @@
         <button type="button" class="invoice-type-btn" data-type="external">🚚 فاتورة خارجية</button>
     </div>
 
-    <div class="invoice-paper" id="invoiceContainer">
-        <div class="invoice-content">
-            
-            <div class="header-top-row">
-                <div class="header-right-side">
-                    <div class="header-line">فرع أسواق القرين:</div>
-                    <div class="header-line">6070 9931 - 6010 9932 📞💬</div>
-                    <div class="header-line">fondant.q8 <img src="https://i.postimg.cc/BbbNyRM8/Instagram-app-logo.jpg" alt="Instagram" class="insta-icon"></div>
-                    <div class="header-line">www.fondant-kw.com</div>
-                    <img src="https://i.postimg.cc/fLLx3hGx/instagram-QR-Code.png" alt="QR Code" class="qr-code-img">
-                </div>
+    <!-- A4 Container - مسافة 0.6 سم من كل الجوانب -->
+    <div class="a4-page-wrapper" id="a4Wrapper">
+        <div class="invoice-paper" id="invoiceContainer">
+            <div class="invoice-content">
                 
-                <div class="header-center-logo">
-                    <img src="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/80x80?text=FONDANT'">
-                    <div class="brand-name">FONDANT CHOCO</div>
-                </div>
-                
-                <div class="header-left-side">
-                    <div class="header-line-left">فاتورة نقداً / بالحساب<br>Cash/Credit Invoice</div>
-                    <div class="inv-no-badge" dir="ltr">
-                        <span>INV No.</span>
-                        <input type="number" id="invoiceNumberInput" value="5001">
+                <div class="header-top-row">
+                    <div class="header-right-side">
+                        <div class="header-line">فرع أسواق القرين:</div>
+                        <div class="header-line">6070 9931 - 6010 9932 📞💬</div>
+                        <div class="header-line">fondant.q8 <img src="https://i.postimg.cc/BbbNyRM8/Instagram-app-logo.jpg" alt="Instagram" class="insta-icon"></div>
+                        <div class="header-line">www.fondant-kw.com</div>
+                        <img src="https://i.postimg.cc/fLLx3hGx/instagram-QR-Code.png" alt="QR Code" class="qr-code-img">
+                    </div>
+                    
+                    <div class="header-center-logo">
+                        <img src="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg" alt="Logo" class="logo-img" onerror="this.src='https://placehold.co/80x80?text=FONDANT'">
+                        <div class="brand-name">FONDANT CHOCO</div>
+                    </div>
+                    
+                    <div class="header-left-side">
+                        <div class="header-line-left">فاتورة نقداً / بالحساب<br>Cash/Credit Invoice</div>
+                        <div class="inv-no-badge" dir="ltr">
+                            <span>INV No.</span>
+                            <input type="number" id="invoiceNumberInput" value="5001">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="fields-container">
-                <div class="field-line">
-                    <span class="field-label">Mr./Mrs. :السيد / ة</span>
-                    <div class="autocomplete-wrapper" style="flex: 6;">
-                        <input type="text" id="customerInput" class="dotted-input" placeholder="اختر/اكتب العميل...">
-                        <div id="customerList" class="autocomplete-list"></div>
+                <div class="fields-container">
+                    <!-- سطر العميل والتاريخ: Invoice To ثم العميل ثم Date: ثم التاريخ (من اليسار لليمن) -->
+                    <div class="field-line">
+                        <span class="field-label">Invoice To</span>
+                        <div class="autocomplete-wrapper" style="flex: 12;">
+                            <input type="text" id="customerInput" class="dotted-input" placeholder="اختر/اكتب العميل...">
+                            <div id="customerList" class="autocomplete-list"></div>
+                        </div>
+
+                        <span class="field-label phone-field-item" style="margin-left: 8px;">Tel:</span>
+                        <input type="text" id="customerPhone" class="dotted-input phone-field-item" style="width: 86px;">
+
+                        <span class="field-label" style="margin-left: auto; margin-right: 4px;">Date:</span>
+                        <input type="date" id="invoiceDate" class="dotted-input" style="text-align: center; width: 125px;">
                     </div>
-                    <span class="field-label" style="margin-right: 10px;">تليفون / Tel:</span>
-                    <input type="text" id="customerPhone" class="dotted-input" style="width: 120px;">
-                    <span class="field-label" style="margin-right: auto;">:تاريخ الطلب</span>
-                    <input type="date" id="invoiceDate" class="dotted-input" style="text-align: center;">
-                </div>
 
-                <div class="field-line address-grid">
-                    <span class="field-label">المنطقة / Area:</span>
-                    <input type="text" id="areaInput" class="dotted-input">
-                    <span class="field-label">قطعة / Block:</span>
-                    <input type="text" id="blockInput" class="dotted-input">
-                    <span class="field-label">شارع / Street:</span>
-                    <div id="streetInput" contenteditable="true"></div>
-                    <span class="field-label">جادة / Jeda:</span>
-                    <input type="text" id="jedaInput" class="dotted-input">
-                    <span class="field-label">منزل / Home:</span>
-                    <input type="text" id="homeInput" class="dotted-input">
-                </div>
-            </div>
-
-            <table class="items-table" id="itemsTable">
-                <thead>
-                    <tr>
-                        <th>Description التفاصيل</th>
-                        <th>Unit سعر الوحدة</th>
-                        <th>Qty الكمية</th>
-                        <th>Total المبلغ<br><small>(دينار | فلس)</small></th>
-                        <th class="no-print"></th>
-                    </tr>
-                </thead>
-                <tbody id="invoiceRows"></tbody>
-            </table>
-
-            <button type="button" class="add-row-btn no-print" id="addItemBtn">+ إضافة صنف إضافي</button>
-
-            <div class="totals-section">
-                <div class="total-box">
-                    <div class="total-line" id="subTotalLine">
-                        <span class="total-label-en">Sub Total :</span>
-                        <span class="total-value-en">KD <span id="subTotalVal">0.000</span></span>
-                        <span class="total-label-ar">الاجمالي:</span>
-                    </div>
-                    <div class="total-line" id="deliveryLine">
-                        <span class="total-label-en">Delivery :</span>
-                        <span class="total-value-en">KD <input type="text" id="deliveryFeeInput" inputmode="decimal" placeholder="0.000"></span>
-                        <span class="total-label-ar">توصيل:</span>
-                    </div>
-                    <div class="total-line grand">
-                        <span class="total-label-en">Total Amount :</span>
-                        <span class="total-value-en grand-total-value">KD <span id="grandTotalVal">0.000</span></span>
-                        <span class="total-label-ar">الإجمالي الكلي:</span>
+                    <!-- شبكة العنوان (تخفي تلقائياً في فاتورة المستشفيات) -->
+                    <div class="field-line address-grid address-field-item">
+                        <span class="field-label">المنطقة / Area:</span>
+                        <input type="text" id="areaInput" class="dotted-input">
+                        <span class="field-label">قطعة / Block:</span>
+                        <input type="text" id="blockInput" class="dotted-input">
+                        <span class="field-label">شارع / Street:</span>
+                        <div id="streetInput" contenteditable="true"></div>
+                        <span class="field-label">جادة / Jeda:</span>
+                        <input type="text" id="jedaInput" class="dotted-input">
+                        <span class="field-label">منزل / Home:</span>
+                        <input type="text" id="homeInput" class="dotted-input">
                     </div>
                 </div>
-            </div>
 
-            <div style="text-align: center; margin-bottom: 8px;">
-                <div style="font-weight: bold; font-size: 25px; background: #ffcdd2; padding: 6px 12px; border-radius: 4px; display: inline-block;">المرتجعات / Returns</div>
-            </div>
+                <table class="items-table" id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th>Description التفاصيل</th>
+                            <th>Unit سعر الوحدة</th>
+                            <th>Qty الكمية</th>
+                            <th>Total المبلغ<br><small>(دينار | فلس)</small></th>
+                            <th class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceRows"></tbody>
+                </table>
 
-            <table class="items-table returns-table" id="returnsTable">
-                <thead>
-                    <tr>
-                        <th>Description التفاصيل</th>
-                        <th>Qty الكمية</th>
-                        <th class="no-print"></th>
-                    </tr>
-                </thead>
-                <tbody id="returnsRows"></tbody>
-            </table>
-            <button type="button" class="add-row-btn no-print" id="addReturnBtn">+ إضافة صنف مرتجع</button>
+                <button type="button" class="add-row-btn no-print" id="addItemBtn">+ إضافة صنف إضافي</button>
 
-            <div class="signatures-section">
-                <div>
-                    اسم السائق المستلم:<br>
-                    <span style="font-size: 10px; font-weight: normal; color: #444;">Driver Name:</span>
-                    <span class="sig-line"></span>
+                <div class="totals-section">
+                    <div class="total-box">
+                        <div class="total-line" id="subTotalLine">
+                            <span class="total-label-en">Sub Total :</span>
+                            <span class="total-value-en">KD <span id="subTotalVal">0.000</span></span>
+                            <span class="total-label-ar">الاجمالي:</span>
+                        </div>
+                        <div class="total-line" id="deliveryLine">
+                            <span class="total-label-en">Delivery :</span>
+                            <span class="total-value-en">KD <input type="text" id="deliveryFeeInput" inputmode="decimal" placeholder="0.000"></span>
+                            <span class="total-label-ar">توصيل:</span>
+                        </div>
+                        <div class="total-line grand">
+                            <span class="total-label-ar">الإجمالي الكلي:</span>
+                            <span class="total-value-en grand-total-value">KD <span id="grandTotalVal">0.000</span></span>
+                            <span class="total-label-en">Total Amount</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    توقيع العميل:<br>
-                    <span style="font-size: 10px; font-weight: normal; color: #444;">Customer Signature:</span>
-                    <span class="sig-line"></span>
-                </div>
-            </div>
 
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <div style="font-weight: bold; font-size: 25px; background: #ffcdd2; padding: 6px 12px; border-radius: 4px; display: inline-block;">المرتجعات / Returns</div>
+                </div>
+
+                <table class="items-table returns-table" id="returnsTable">
+                    <thead>
+                        <tr>
+                            <th>Description التفاصيل</th>
+                            <th>Qty الكمية</th>
+                            <th class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnsRows"></tbody>
+                </table>
+                <button type="button" class="add-row-btn no-print" id="addReturnBtn">+ إضافة صنف مرتجع</button>
+
+                <div class="signatures-section">
+                    <div>
+                        اسم السائق المستلم:<br>
+                        <span style="font-size: 10px; font-weight: normal; color: #444;">Driver Name:</span>
+                        <span class="sig-line"></span>
+                    </div>
+                    <div>
+                        توقيع العميل:<br>
+                        <span style="font-size: 10px; font-weight: normal; color: #444;">Customer Signature:</span>
+                        <span class="sig-line"></span>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -673,7 +695,6 @@
             <button class="btn btn-primary" style="width: auto; padding: 8px 20px;" onclick="generateStatement()">🔍 عرض الكشف</button>
             <button class="btn btn-success" style="width: auto; padding: 8px 20px;" onclick="exportStatementPDF()">📄 تصدير PDF</button>
             <button class="btn btn-secondary" style="width: auto; padding: 8px 20px;" onclick="resetStatementFilters()">↻ تفريغ</button>
-            <button class="btn btn-info" style="width: auto; padding: 8px 20px; background: #17a2b8; margin-right: auto;" onclick="generateBabAlKhair()">🏢 كشف باب الخير (جميع فواتير المستشفيات)</button>
         </div>
         <div id="statementResultArea">
             <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
@@ -1071,12 +1092,6 @@
         { name: "Taco Mix Box - تاكو ميكس بوكس", price: 8.000 }
     ];
 
-    const NEW_MUST_HAVE_ITEMS = [
-        { name: "Crystal Baby", price: 8.000 },
-        { name: "Regular Crystal", price: 8.000 },
-        { name: "wood Baby", price: 11.000 }
-    ];
-
     function migrateItemNames() {
         const nameMap = {
             'HALLOM CROLL SANDWITCH': 'HALLOUM CROLL SANDWICH',
@@ -1095,7 +1110,7 @@
         const extNameMap = {
             'BELGIAN CHOCOLAAA - شوكولاتة بلجيكية': 'BELGIAN CHOCOLATE - شوكولاتة بلجيكية',
             'BROKEN CHOCOLATE - شوكليت مكسر': 'BROKEN CHOCOLATE - شوكولاتة مكسر',
-            'SWISS CHOCOLATE BOX - شوكولا سويسريه': 'SWISS CHOCOLATE BOX - شوكولا سويسرية',
+            'SWISS CHOCOLATE BOX - شوكولا سويسريه': 'SWISS CHOCOLATE BOX - شوكولاتة سويسرية',
             'TACO MIX BOX - تاكو ميكس بوكي': 'TACO MIX BOX - تاكو ميكس بوكس'
         };
 
@@ -1197,14 +1212,8 @@
         }
     }
 
-    const migrationResult = migrateItemNames();
-    if (migrationResult.changed > 0) {
-        console.log(`تم تحديث ${migrationResult.changed} اسم صنف تلقائياً.`);
-    }
-    const newItemsMigration = migrateAddNewItems();
-    if (newItemsMigration.added > 0 || newItemsMigration.renamed > 0) {
-        console.log(`تمت إضافة ${newItemsMigration.added} صنف جديد وإعادة تسمية ${newItemsMigration.renamed} صنف تلقائياً.`);
-    }
+    migrateItemNames();
+    migrateAddNewItems();
 
     function loadHospitalItemsDB() {
         const stored = localStorage.getItem('fondant_items');
@@ -1235,8 +1244,32 @@
     const returnsRows = document.getElementById('returnsRows');
     const streetInput = document.getElementById('streetInput');
 
-    const today = new Date().toISOString().split('T')[0];
-    invoiceDateInput.value = getTomorrowDateString();
+    // ضبط صيغة التاريخ ليكون من اليسار لليمين DD-MM-YYYY
+    function getFormattedDate(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${day}-${m}-${y}`;
+    }
+
+    function getTomorrowDateInputString() {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function getTodayDateInputString() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    invoiceDateInput.value = getTomorrowDateInputString();
 
     streetInput.addEventListener('paste', function(e) {
         e.preventDefault();
@@ -1573,13 +1606,21 @@
         });
         const subTotalLine = document.getElementById('subTotalLine');
         const deliveryLine = document.getElementById('deliveryLine');
+        
+        const phoneItems = document.querySelectorAll('.phone-field-item');
+        const addressGrid = document.querySelector('.address-grid');
+
         if (invoiceType === 'external') {
             subTotalLine.style.display = 'grid';
             deliveryLine.style.display = 'grid';
+            phoneItems.forEach(el => el.style.display = '');
+            if (addressGrid) addressGrid.style.display = 'flex';
         } else {
             subTotalLine.style.display = 'none';
             deliveryLine.style.display = 'none';
             document.getElementById('deliveryFeeInput').value = '';
+            phoneItems.forEach(el => el.style.display = 'none');
+            if (addressGrid) addressGrid.style.display = 'none';
         }
         updateGrandTotal();
     }
@@ -1593,7 +1634,7 @@
         returnsRows.innerHTML = '';
         customerInput.value = '';
         document.getElementById('deliveryFeeInput').value = '';
-        invoiceDateInput.value = (newType === 'hospital') ? getTomorrowDateString() : today;
+        invoiceDateInput.value = (newType === 'hospital') ? getTomorrowDateInputString() : getTodayDateInputString();
         populateAllDefaultItems();
         updateGrandTotal();
         addLogEntry(`تم التبديل إلى ${newType === 'external' ? 'فاتورة خارجية' : 'فاتورة المستشفيات'}.`, false);
@@ -1723,6 +1764,22 @@
             return;
         }
 
+        let invalidReturns = false;
+        document.querySelectorAll('#returnsRows tr').forEach((tr, index) => {
+            const nameVal = tr.querySelector('.prod-input').value.trim();
+            const qtyVal = tr.querySelector('.qty-input').value.trim();
+            if (nameVal !== '' || qtyVal !== '') {
+                if (nameVal === '' && qtyVal !== '') {
+                    alert(`⚠️ لا يمكن حفظ الفاتورة: تم إدخال كمية مرتجع في السطر رقم (${index + 1}) دون تحديد اسم الصنف المرتجع!`);
+                    invalidReturns = true;
+                } else if (nameVal !== '' && (qtyVal === '' || parseFloat(qtyVal) <= 0)) {
+                    alert(`⚠️ لا يمكن حفظ الفاتورة: تم اختيار الصنف المرتجع "${nameVal}" دون إدخال الكمية المرتجعة!`);
+                    invalidReturns = true;
+                }
+            }
+        });
+        if (invalidReturns) return;
+
         if (invoiceType === 'external') {
             const currentFee = parseFloat(deliveryFeeInput.value) || 0;
             if (currentFee <= 0) {
@@ -1762,9 +1819,9 @@
 
         let returns = [];
         document.querySelectorAll('#returnsRows tr').forEach(tr => {
-            const name = tr.querySelector('.prod-input').value;
-            const qty = tr.querySelector('.qty-input').value;
-            if (name || qty) returns.push({ name: name, qty: qty });
+            const name = tr.querySelector('.prod-input').value.trim();
+            const qty = tr.querySelector('.qty-input').value.trim();
+            if (name && qty) returns.push({ name: name, qty: qty });
         });
 
         const currentArea = document.getElementById('areaInput').value;
@@ -1815,8 +1872,8 @@
         if (isSequenceChanged) logText = `<span style="color:red; font-weight:bold;">⚠️ تم تغيير تسلسل الفاتورة يدوياً إلى [ ${invNum} ] - ${custName} بقيمة ${grandTotal}</span>`;
         addLogEntry(logText, isSequenceChanged);
 
-        const container = document.getElementById('invoiceContainer');
-        container.classList.add('pdf-mode');
+        const a4Container = document.getElementById('a4Wrapper');
+        a4Container.classList.add('pdf-mode');
         let hiddenRows = [];
         try {
             if (invoiceType === 'hospital') {
@@ -1829,7 +1886,7 @@
                 });
             }
             await new Promise(r => setTimeout(r, 100));
-            const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const canvas = await html2canvas(a4Container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -1838,7 +1895,7 @@
             pdf.save(`Invoice_${invNum}_${custName}.pdf`);
         } catch(err) { alert("حدث خطأ أثناء حفظ وتصدير الـ PDF"); }
         finally {
-            container.classList.remove('pdf-mode');
+            a4Container.classList.remove('pdf-mode');
             hiddenRows.forEach(tr => tr.style.display = '');
         }
 
@@ -1847,6 +1904,8 @@
         editingInvoiceNumber = null;
         clearFormFields();
         alert(`تم الحفظ والتصدير بنجاح! الفاتورة التالية برقم: ${currentInvoiceNum}`);
+        
+        setTimeout(() => customerInput.focus(), 100);
     });
 
     function clearFormFields() {
@@ -1860,7 +1919,7 @@
         document.getElementById('deliveryFeeInput').value = '';
         returnsRows.innerHTML = '';
         editingInvoiceNumber = null;
-        invoiceDateInput.value = (invoiceType === 'hospital') ? getTomorrowDateString() : today;
+        invoiceDateInput.value = (invoiceType === 'hospital') ? getTomorrowDateInputString() : getTodayDateInputString();
         populateAllDefaultItems();
     }
 
@@ -2006,173 +2065,6 @@
         `;
     }
 
-    // ==========================================================
-    // دوال كشف "باب الخير" (Bab Al Khair) - إجمالي كل فاتورة
-    // ==========================================================
-    let lastBabAlKhairData = null;
-
-    function generateBabAlKhair() {
-        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
-        const hospitalInvoices = saved.filter(inv => (inv.type || 'hospital') === 'hospital');
-
-        if (!hospitalInvoices.length) {
-            alert("No hospital invoices found in the system.");
-            return;
-        }
-
-        // Sort by date ascending
-        hospitalInvoices.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-        const tableData = [];
-        let grandTotal = 0;
-
-        hospitalInvoices.forEach(inv => {
-            const invTotal = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
-            grandTotal += invTotal;
-            tableData.push([
-                inv.number || '',
-                inv.date || '',
-                inv.customer || '',
-                invTotal.toFixed(3)
-            ]);
-        });
-
-        lastBabAlKhairData = { tableData, grandTotal };
-
-        let rowsHTML = '';
-        tableData.forEach(row => {
-            rowsHTML += `<tr>
-                <td style="padding: 6px; border: 1px solid #000;">${row[0]}</td>
-                <td style="padding: 6px; border: 1px solid #000;">${row[1]}</td>
-                <td style="padding: 6px; border: 1px solid #000; text-align: left;">${row[2]}</td>
-                <td style="padding: 6px; border: 1px solid #000; text-align: right; font-weight: bold;">${row[3]}</td>
-            </tr>`;
-        });
-
-        const html = `
-            <div class="no-print" style="text-align:center; margin-bottom: 15px;">
-                <button class="btn btn-success" style="width: auto; padding: 8px 20px; margin-right: 10px; display: inline-flex;" onclick="exportBabAlKhairPDF()">📄 Export PDF</button>
-                <button class="btn btn-warning" style="width: auto; padding: 8px 20px; display: inline-flex; color: #000;" onclick="exportBabAlKhairXLSX()">📊 Export XLSX</button>
-            </div>
-            ${buildStatementCompanyHeader()}
-            <div class="statement-title">
-                <h2>Statement of Account</h2>
-                <div class="sub">Customer: <b>Bab Al Khair</b></div>
-            </div>
-            <table class="statement-table" style="font-size: 14px; text-align: center;">
-                <thead>
-                    <tr>
-                        <th>Invoice No</th>
-                        <th>Date</th>
-                        <th>Hospital</th>
-                        <th>Total Amount (KD)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHTML}
-                </tbody>
-            </table>
-            <div class="statement-summary" style="margin-top: 10px;">
-                <div class="line total"><span>Grand Total:</span><span class="val" style="font-size:17.6px;">KD ${grandTotal.toFixed(3)}</span></div>
-            </div>
-        `;
-
-        document.getElementById('statementResultArea').innerHTML = html;
-        addLogEntry("تم إنشاء كشف باب الخير (Bab Al Khair) بنجاح.", false);
-    }
-
-    function exportBabAlKhairPDF() {
-        if (!lastBabAlKhairData) {
-            alert("Please generate the statement first.");
-            return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4'); // Portrait, millimeters, A4
-
-        // Header
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("FONDANT CHOCO", 105, 15, { align: "center" });
-        
-        doc.setFontSize(12);
-        doc.text("Statement of Account", 105, 22, { align: "center" });
-        doc.text("Customer: Bab Al Khair", 105, 28, { align: "center" });
-
-        // Table (autoTable ensures header repeats on every page)
-        doc.autoTable({
-            startY: 35,
-            head: [['Invoice No', 'Date', 'Hospital', 'Total Amount (KD)']],
-            body: lastBabAlKhairData.tableData,
-            theme: 'grid',
-            styles: { 
-                font: 'helvetica', 
-                fontSize: 10, // مقاس مناسب
-                cellPadding: 2.5, 
-                halign: 'center'
-            },
-            headStyles: { 
-                fillColor: [40, 40, 40], 
-                textColor: [255, 255, 255], 
-                fontStyle: 'bold',
-                halign: 'center'
-            },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
-            columnStyles: {
-                0: { cellWidth: 35 },
-                1: { cellWidth: 35 },
-                2: { cellWidth: 'auto', halign: 'left' }, 
-                3: { cellWidth: 40, halign: 'right' }
-            },
-            didDrawPage: function (data) {
-                const pageCount = doc.internal.getNumberOfPages();
-                doc.setFontSize(9);
-                doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber + ' of ' + pageCount, data.settings.margin.left, doc.internal.pageSize.height - 10);
-            }
-        });
-
-        // Grand Total
-        let finalY = doc.lastAutoTable.finalY + 10;
-        if (finalY > 270) {
-            doc.addPage();
-            finalY = 20;
-        }
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Grand Total: KD ${lastBabAlKhairData.grandTotal.toFixed(3)}`, 200, finalY, { align: "right" });
-
-        doc.save(`Statement_Bab_Al_Khair_${new Date().toISOString().split('T')[0]}.pdf`);
-        addLogEntry("تم تصدير كشف باب الخير PDF.", false);
-    }
-
-    function exportBabAlKhairXLSX() {
-        if (!lastBabAlKhairData) {
-            alert("Please generate the statement first.");
-            return;
-        }
-        
-        const headers = ["Invoice No", "Date", "Hospital", "Total Amount (KD)"];
-        const data = [headers, ...lastBabAlKhairData.tableData];
-        
-        // Add Grand Total row
-        data.push(["", "", "Grand Total", lastBabAlKhairData.grandTotal.toFixed(3)]);
-
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Statement");
-        
-        const wscols = [
-            { wch: 15 }, // Invoice No
-            { wch: 15 }, // Date
-            { wch: 35 }, // Hospital
-            { wch: 20 }  // Total Amount
-        ];
-        ws['!cols'] = wscols;
-
-        XLSX.writeFile(wb, `Statement_Bab_Al_Khair_${new Date().toISOString().split('T')[0]}.xlsx`);
-        addLogEntry("تم تصدير كشف باب الخير XLSX.", false);
-    }
-    // ==========================================================
-
     function generateStatement() {
         const search = document.getElementById('statementCustomer').value.trim();
         const fromDate = document.getElementById('statementFromDate').value;
@@ -2205,8 +2097,8 @@
             totalGrand += grand; totalDelivery += delivery; totalItems += (grand - delivery);
         });
 
-        const fromDateDisplay = fromDate ? new Date(fromDate).toLocaleDateString('en-GB') : '—';
-        const toDateDisplay = toDate ? new Date(toDate).toLocaleDateString('en-GB') : '—';
+        const fromDateDisplay = fromDate ? getFormattedDate(new Date(fromDate)) : '—';
+        const toDateDisplay = toDate ? getFormattedDate(new Date(toDate)) : '—';
 
         let headersHTML = `<th style="width:8%;">#</th><th style="width:18%;">رقم الفاتورة<br>Invoice No.</th><th style="width:22%;">التاريخ<br>Date</th>`;
         if (hasDelivery) headersHTML += `<th style="width:18%;">قيمة الأصناف<br>Items Amount</th><th style="width:15%;">التوصيل<br>Delivery</th>`;
@@ -2217,7 +2109,7 @@
             const grand = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
             const delivery = parseFloat(inv.deliveryFee) || 0;
             const sub = grand - delivery;
-            const dateDisplay = inv.date ? new Date(inv.date).toLocaleDateString('en-GB') : '—';
+            const dateDisplay = inv.date ? getFormattedDate(new Date(inv.date)) : '—';
             rowsHTML += `<tr><td>${idx + 1}</td><td>${inv.number || ''}</td><td>${dateDisplay}</td>`;
             if (hasDelivery) rowsHTML += `<td style="direction:ltr; font-weight:bold;">KD ${sub.toFixed(3)}</td><td style="direction:ltr; font-weight:bold;">KD ${delivery.toFixed(3)}</td>`;
             rowsHTML += `<td style="direction:ltr; font-weight:bold; color:#d32f2f;">KD ${grand.toFixed(3)}</td></tr>`;
@@ -2319,8 +2211,8 @@
             const delivery = parseFloat(inv.deliveryFee) || 0;
             totalGrand += grand; totalDelivery += delivery; totalItems += (grand - delivery);
         });
-        const fromDisplay = fromDate ? new Date(fromDate).toLocaleDateString('en-GB') : '—';
-        const toDisplay = toDate ? new Date(toDate).toLocaleDateString('en-GB') : '—';
+        const fromDisplay = fromDate ? getFormattedDate(new Date(fromDate)) : '—';
+        const toDisplay = toDate ? getFormattedDate(new Date(toDate)) : '—';
         const typeLabel = typeFilter === 'all' ? 'الكل / All' : (typeFilter === 'hospital' ? 'مستشفيات / Hospital' : 'خارجية / External');
 
         let rowsHTML = '';
@@ -2328,7 +2220,7 @@
             const grand = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
             const delivery = parseFloat(inv.deliveryFee) || 0;
             const sub = grand - delivery;
-            const dateDisplay = inv.date ? new Date(inv.date).toLocaleDateString('en-GB') : '—';
+            const dateDisplay = inv.date ? getFormattedDate(new Date(inv.date)) : '—';
             const typeLabelRow = inv.type === 'external' ? 'خارجية' : 'مستشفيات';
             let itemsDetail = '';
             if (inv.items && inv.items.length) {
@@ -2687,6 +2579,10 @@
 
     updateInvoiceTypeUI();
     populateAllDefaultItems();
+
+    setTimeout(() => {
+        customerInput.focus();
+    }, 200);
 </script>
 
 </body>
