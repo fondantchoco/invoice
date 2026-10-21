@@ -7,6 +7,7 @@
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #eef2f5; font-family: 'Segoe UI', Arial, sans-serif; padding: 15px; padding-right: 210px; color: #111; }
@@ -123,7 +124,6 @@
         .fields-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
         .field-line { display: flex; align-items: center; gap: 6px; width: 100%; direction: ltr; }
         
-        /* تكبير Invoice To و Date بنسبة 10% لتصبح 14.3px */
         .field-label { font-weight: bold; font-size: 14.3px; color: #222; white-space: nowrap; line-height: 1.4; font-family: Arial, sans-serif; }
 
         .dotted-input {
@@ -202,6 +202,7 @@
         .items-table th {
             border: 1.2px solid #000; padding: 4px 4px; background: #ffffff;
             font-weight: bold; font-size: 12px; text-align: center; color: #000;
+            line-height: 1.2;
         }
         .items-table td {
             border: 1.2px solid #000; padding: 4px 4px;
@@ -325,59 +326,36 @@
             min-width: 160px;
         }
 
-        #statementResultArea, #reportResultArea { padding: 8px; background: #fff; }
+        #statementResultArea, #reportResultArea, #dailySummaryResultArea, #babKhairResultArea { padding: 8px; background: #fff; }
 
-        .statement-company-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 15px;
+        /* ترويسة كشف حساب باب الخير مطابق للمرفق تماماً */
+        .bab-khair-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 8px; margin-bottom: 5px; font-family: Arial, sans-serif;
+            direction: ltr; text-align: left;
         }
-        .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
-        .statement-company-header .sch-right {
-            text-align: center; align-items: center;
-            font-size: 11px; font-weight: bold; color: #111;
-            line-height: 1.4; min-width: 130px;
-        }
-        .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
-        .statement-company-header .sch-left { min-width: 130px; }
-        .statement-company-header .sch-logo { height: 55px; width: auto; object-fit: contain; }
-        .statement-company-header .sch-brand {
-            font-size: 18px; font-weight: 900; letter-spacing: 1px;
-            color: #000; font-family: Arial, sans-serif; margin-top: 3px;
-        }
-        .statement-company-header .sch-qr { width: 55px; height: 55px; margin-top: 3px; }
+        .bab-khair-header .logo-title { font-size: 26px; font-weight: 900; color: #000; letter-spacing: 0.5px; }
+        .bab-khair-header .logo-subtitle { font-size: 13px; color: #444; margin-top: 10px; font-weight: bold; }
+        .bab-khair-header .logo-box { text-align: center; }
+        .bab-khair-header .logo-box img { height: 60px; object-fit: contain; }
+        .bab-khair-divider { border: none; border-top: 2.5px solid #222; margin-bottom: 15px; }
 
-        .statement-title { text-align: center; margin: 12px 0 15px; }
-        .statement-title h2 { font-size: 20px; font-weight: 900; color: #000; font-family: Arial; letter-spacing: 1px; }
-        .statement-title .sub { font-size: 14px; color: #333; margin-top: 4px; font-weight: bold; }
+        .bab-khair-title-box { text-align: center; margin-bottom: 15px; font-family: Arial, sans-serif; direction: ltr; }
+        .bab-khair-title-box h2 { font-size: 24px; font-weight: 900; color: #004494; letter-spacing: 0.8px; margin-bottom: 4px; }
+        .bab-khair-title-box h3 { font-size: 16px; font-weight: 900; color: #111; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .bab-khair-title-box .period-str { font-size: 13.5px; font-weight: bold; color: #333; }
 
-        .statement-info {
-            display: flex; justify-content: space-between; flex-wrap: wrap;
-            gap: 10px; font-size: 13px; font-weight: bold; margin-bottom: 12px;
-            padding: 12px 15px; background: #fafafa; border-radius: 6px;
-            border: 1px solid #ddd;
+        .bab-khair-meta-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1.5px solid #bbb; border-radius: 6px; padding: 6px 12px;
+            font-family: Arial, sans-serif; font-size: 13px; font-weight: bold;
+            margin-bottom: 12px; background: #fff; direction: ltr;
         }
-        .statement-customer-name { font-size: 18px; color: #d32f2f; font-weight: 900; }
 
-        .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
-        .statement-table th {
-            border: 1.2px solid #000; background: #333;
-            color: #fff; padding: 9px 6px; font-weight: bold;
-            text-align: center; font-size: 12px;
-        }
-        .statement-table td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
-        .statement-table tr:nth-child(even) td { background: #f9f9f9; }
-        .statement-summary {
-            display: flex; flex-direction: column; gap: 5px;
-            padding: 12px 18px; background: #fff;
-            border: 2px solid #000; border-radius: 6px;
-            margin-left: auto; min-width: 340px; max-width: 400px;
-        }
-        .statement-summary .line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
-        .statement-summary .line.total {
-            border-top: 2px solid #000; padding-top: 6px;
-            margin-top: 4px; font-size: 16px;
-        }
-        .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
+        .bab-khair-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12.5px; direction: ltr; margin-bottom: 15px; }
+        .bab-khair-table th { border: 1.5px solid #000; background: #fff; color: #000; padding: 6px 4px; font-weight: 900; text-align: center; font-size: 12px; }
+        .bab-khair-table td { border: 1.2px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+        .bab-khair-table tr:nth-child(even) td { background: #ffffff; }
 
         .pdf-mode { padding: 0.6cm !important; box-shadow: none !important; }
         .pdf-mode .invoice-paper { border: 2.5px solid #6c757d !important; }
@@ -435,6 +413,11 @@
         .signature-card .name { font-size: 0.7125rem; font-weight: 700; margin-bottom: 3px; color: #1565c0; }
         .signature-card .title { font-size: 0.525rem; opacity: 0.95; font-weight: 500; color: #1565c0; }
 
+        @media print {
+            .repeating-header { display: table-header-group !important; }
+            tr { page-break-inside: avoid; }
+        }
+
         @media (max-width: 768px) {
             body { padding-right: 15px !important; padding-top: 65px; }
             .invoice-system { margin: 0 auto; }
@@ -465,7 +448,10 @@
 
 <div id="backupReminderBanner">
     <span>⚠️ تنبيه: لم تقم بأخذ نسخة احتياطية لبيانات النظام منذ أكثر من ساعة. يرجى أخذ نسخة احتياطية الآن لحفظ البيانات.</span>
-    <button class="btn btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="exportBackup()">أخذ نسخة الآن</button>
+    <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 12px; width:auto;" onclick="exportBackup()">أخذ نسخة الآن</button>
+        <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px; width:auto;" onclick="dismissBackupBanner()">تجاهل ✖</button>
+    </div>
 </div>
 
 <div class="mobile-header-bar no-print">
@@ -480,9 +466,12 @@
         <span style="font-weight: bold; font-size: 13px; color: #333;">خيارات النظام</span>
         <button class="btn btn-danger" style="width: auto; padding: 3px 8px; font-size: 11px;" onclick="toggleMobileSidebar()">إغلاق ✖</button>
     </div>
-    <button class="btn btn-primary" onclick="toggleMobileSidebar(); document.getElementById('saveAndExportBtn').click();">💾 حفظ وتصدير PDF وتالي</button>
+    <button class="btn btn-primary" onclick="toggleMobileSidebar(); document.getElementById('saveInvoiceBtn').click();">💾 حفظ الفاتورة وتالي</button>
+    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('exportDayPDFBtn').click();">📑 تصدير فواتير يوم محدد (PDF واحد)</button>
     <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('viewInvoicesBtn').click();">📂 الفواتير المحفوظة</button>
     <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('statementBtn').click();">📊 كشف حساب عميل</button>
+    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('dailySummaryBtn').click();">📦 تقرير إجمالي أصناف يوم</button>
+    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('babKhairBtn').click();">🏢 كشف باب الخير (مستشفيات)</button>
     <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('reportBtn').click();">📈 تقرير الفواتير</button>
     <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageItemsBtn').click();">⚙️ إدارة أصناف المستشفيات</button>
     <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageExternalItemsBtn').click();">⚙️ إدارة الأصناف الخارجية</button>
@@ -497,9 +486,12 @@
 </div>
 
 <div style="display:none;">
-    <button id="saveAndExportBtn">حفظ وتصدير</button>
+    <button id="saveInvoiceBtn">حفظ الفاتورة</button>
+    <button id="exportDayPDFBtn">تصدير فواتير يوم</button>
     <button id="viewInvoicesBtn">الفواتير المحفوظة</button>
     <button id="statementBtn">كشف حساب</button>
+    <button id="dailySummaryBtn">تقرير يومي</button>
+    <button id="babKhairBtn">باب الخير</button>
     <button id="reportBtn">تقرير</button>
     <button id="manageItemsBtn">أصناف مستشفيات</button>
     <button id="manageExternalItemsBtn">أصناف خارجية</button>
@@ -546,7 +538,6 @@
                 </div>
 
                 <div class="fields-container">
-                    <!-- سطر العميل والتاريخ: Invoice To ثم العميل ثم Date: ثم التاريخ (من اليسار لليمن) -->
                     <div class="field-line">
                         <span class="field-label">Invoice To</span>
                         <div class="autocomplete-wrapper" style="flex: 12;">
@@ -561,7 +552,6 @@
                         <input type="date" id="invoiceDate" class="dotted-input" style="text-align: center; width: 125px;">
                     </div>
 
-                    <!-- شبكة العنوان (تخفي تلقائياً في فاتورة المستشفيات) -->
                     <div class="field-line address-grid address-field-item">
                         <span class="field-label">المنطقة / Area:</span>
                         <input type="text" id="areaInput" class="dotted-input">
@@ -580,9 +570,9 @@
                     <thead>
                         <tr>
                             <th>Description التفاصيل</th>
-                            <th>Unit سعر الوحدة</th>
+                            <th>Unit Price<br>سعر الوحدة</th>
                             <th>Qty الكمية</th>
-                            <th>Total المبلغ<br><small>(دينار | فلس)</small></th>
+                            <th>Total المبلغ</th>
                             <th class="no-print"></th>
                         </tr>
                     </thead>
@@ -671,6 +661,31 @@
     </div>
 </div>
 
+<!-- Modal تصدير فواتير يوم محدد PDF -->
+<div class="modal-overlay" id="exportDayPDFModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>📑 تصدير فواتير يوم محدد (PDF واحد)</h3>
+            <button class="btn btn-danger" style="width: auto;" onclick="closeModal('exportDayPDFModal')">إغلاق ✖</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:15px; padding:15px 0;">
+            <div>
+                <label style="font-weight:bold; font-size:13px; display:block; margin-bottom:5px;">اختر التاريخ المراد تصدير فواتيره:</label>
+                <input type="date" id="exportDayPDFDate" class="dotted-input" style="width:100%; border:1px solid #ccc; padding:8px; border-radius:4px; font-size:15px;">
+            </div>
+            <div>
+                <label style="font-weight:bold; font-size:13px; display:block; margin-bottom:5px;">نوع الفواتير:</label>
+                <select id="exportDayPDFType" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; font-size:14px;">
+                    <option value="hospital">مستشفيات / Hospital</option>
+                    <option value="external">خارجية / External</option>
+                    <option value="all">الكل / All</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="padding:12px; font-size:15px;" onclick="executeExportDayPDF()">📄 تصدير الآن إلى ملف PDF واحد</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal كشف الحساب -->
 <div class="modal-overlay" id="statementModal">
     <div class="modal-content" style="max-width: 1100px;">
@@ -699,6 +714,65 @@
         <div id="statementResultArea">
             <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
                 اختر العميل والفترة الزمنية ثم اضغط "🔍 عرض الكشف"
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal تقرير إجمالي أصناف يوم محدد -->
+<div class="modal-overlay" id="dailySummaryModal">
+    <div class="modal-content" style="max-width: 1100px;">
+        <div class="modal-header">
+            <h3>📦 تقرير إجمالي أصناف طلبات يوم محدد / Daily Items Summary</h3>
+            <button class="btn btn-danger" style="width: auto;" onclick="closeModal('dailySummaryModal')">إغلاق ✖</button>
+        </div>
+        <div class="statement-filters no-print">
+            <div>
+                <label>اختر اليوم / Date:</label>
+                <input type="date" id="dailySummaryDate">
+            </div>
+            <div>
+                <label>نوع الفاتورة / Type:</label>
+                <select id="dailySummaryType">
+                    <option value="hospital">مستشفيات / Hospital</option>
+                    <option value="external">خارجية / External</option>
+                    <option value="all">الكل / All</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: auto; padding: 8px 20px;" onclick="generateDailySummary()">🔍 عرض التقرير</button>
+            <button class="btn btn-success" style="width: auto; padding: 8px 20px;" onclick="exportDailySummaryPDF()">📄 تصدير PDF</button>
+        </div>
+        <div id="dailySummaryResultArea">
+            <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
+                اختر اليوم ثم اضغط "🔍 عرض التقرير" لمعرفة إجمالي الكميات المطلوبة من كل صنف.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal كشف باب الخير (المستشفيات) -->
+<div class="modal-overlay" id="babKhairModal">
+    <div class="modal-content" style="max-width: 1100px;">
+        <div class="modal-header">
+            <h3>🏢 كشف حساب فواتير المستشفيات (شركة باب الخير)</h3>
+            <button class="btn btn-danger" style="width: auto;" onclick="closeModal('babKhairModal')">إغلاق ✖</button>
+        </div>
+        <div class="statement-filters no-print">
+            <div>
+                <label>From Date / من تاريخ:</label>
+                <input type="date" id="babKhairFromDate">
+            </div>
+            <div>
+                <label>To Date / إلى تاريخ:</label>
+                <input type="date" id="babKhairToDate">
+            </div>
+            <button class="btn btn-primary" style="width: auto; padding: 8px 20px;" onclick="generateBabKhairStatement()">🔍 Generate Statement</button>
+            <button class="btn btn-success" style="width: auto; padding: 8px 20px;" onclick="exportBabKhairPDF()">📄 Export PDF</button>
+            <button class="btn btn-success-dark" style="width: auto; padding: 8px 20px;" onclick="exportBabKhairXLSX()">📊 Export XLSX (Excel)</button>
+        </div>
+        <div id="babKhairResultArea">
+            <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
+                Select date range and click "Generate Statement"
             </div>
         </div>
     </div>
@@ -925,6 +999,11 @@
     });
 
     function checkBackupReminder() {
+        const dismissed = sessionStorage.getItem('fondant_backup_dismissed');
+        if (dismissed === 'true') {
+            document.getElementById('backupReminderBanner').style.display = 'none';
+            return;
+        }
         const lastBackup = localStorage.getItem('fondant_last_backup_time');
         const oneHour = 1 * 60 * 60 * 1000;
         if (!lastBackup || (Date.now() - parseInt(lastBackup)) > oneHour) {
@@ -932,6 +1011,11 @@
         } else {
             document.getElementById('backupReminderBanner').style.display = 'none';
         }
+    }
+
+    function dismissBackupBanner() {
+        sessionStorage.setItem('fondant_backup_dismissed', 'true');
+        document.getElementById('backupReminderBanner').style.display = 'none';
     }
 
     function exportBackup() {
@@ -986,15 +1070,6 @@
     function toCapitalTitleCase(str) {
         if (!str) return '';
         return str.toLowerCase().replace(/(?:^|\s|-)\w/g, function(match) { return match.toUpperCase(); });
-    }
-
-    function getTomorrowDateString() {
-        const d = new Date();
-        d.setDate(d.getDate() + 1);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
     }
 
     const OLD_DEFAULT_HOSPITAL_CUSTOMERS = [
@@ -1244,7 +1319,6 @@
     const returnsRows = document.getElementById('returnsRows');
     const streetInput = document.getElementById('streetInput');
 
-    // ضبط صيغة التاريخ ليكون من اليسار لليمين DD-MM-YYYY
     function getFormattedDate(dateObj) {
         const y = dateObj.getFullYear();
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -1751,7 +1825,8 @@
         finally { document.body.removeChild(temp); }
     }
 
-    document.getElementById('saveAndExportBtn').addEventListener('click', async function() {
+    // زر الحفظ فقط (بدون تصدير PDF تلقائي)
+    document.getElementById('saveInvoiceBtn').addEventListener('click', function() {
         if(!customerInput.value.trim()) { alert("يرجى إدخال اسم العميل أولاً."); return; }
 
         let hasValidQty = false;
@@ -1760,11 +1835,12 @@
             if (qtyVal !== '' && parseFloat(qtyVal) > 0) hasValidQty = true;
         });
         if (!hasValidQty) {
-            alert("لا يمكن حفظ وتصدير الفاتورة إلا بعد إدخال كمية لصنف واحد على الأقل.");
+            alert("لا يمكن حفظ الفاتورة إلا بعد إدخال كمية لصنف واحد على الأقل.");
             return;
         }
 
         let invalidReturns = false;
+        const activeItemsDB = getActiveItemsDB();
         document.querySelectorAll('#returnsRows tr').forEach((tr, index) => {
             const nameVal = tr.querySelector('.prod-input').value.trim();
             const qtyVal = tr.querySelector('.qty-input').value.trim();
@@ -1775,6 +1851,12 @@
                 } else if (nameVal !== '' && (qtyVal === '' || parseFloat(qtyVal) <= 0)) {
                     alert(`⚠️ لا يمكن حفظ الفاتورة: تم اختيار الصنف المرتجع "${nameVal}" دون إدخال الكمية المرتجعة!`);
                     invalidReturns = true;
+                } else if (nameVal !== '') {
+                    const matched = activeItemsDB.find(i => i.name.toLowerCase() === nameVal.toLowerCase());
+                    if (!matched) {
+                        alert(`⚠️ الصنف المرتجع "${nameVal}" في السطر رقم (${index + 1}) غير موجود في قائمة الأصناف المعتمدة!\nلا يُسمح بكتابة صنف مرتجع من خارج القائمة إلا إذا تم إضافته مسبقاً في الأصناف.`);
+                        invalidReturns = true;
+                    }
                 }
             }
         });
@@ -1867,46 +1949,118 @@
             localStorage.setItem('fondant_external_customers_meta', JSON.stringify(externalCustomersMeta));
         }
 
-        let logText = `تم حفظ وتصدير فاتورة ${invoiceType === 'external' ? 'خارجية' : 'مستشفيات'} رقم [ ${invNum} ] للعميل ( ${custName} ) بقيمة ${grandTotal}`;
+        let logText = `تم حفظ فاتورة ${invoiceType === 'external' ? 'خارجية' : 'مستشفيات'} رقم [ ${invNum} ] للعميل ( ${custName} ) بقيمة ${grandTotal}`;
         if (deliveryFee > 0) logText += ` - رسوم توصيل: ${deliveryFee.toFixed(3)} KD`;
         if (isSequenceChanged) logText = `<span style="color:red; font-weight:bold;">⚠️ تم تغيير تسلسل الفاتورة يدوياً إلى [ ${invNum} ] - ${custName} بقيمة ${grandTotal}</span>`;
         addLogEntry(logText, isSequenceChanged);
-
-        const a4Container = document.getElementById('a4Wrapper');
-        a4Container.classList.add('pdf-mode');
-        let hiddenRows = [];
-        try {
-            if (invoiceType === 'hospital') {
-                document.querySelectorAll('#invoiceRows tr').forEach(tr => {
-                    const qtyVal = tr.querySelector('.qty-input').value.trim();
-                    if (qtyVal === '' || parseFloat(qtyVal) <= 0) {
-                        tr.style.display = 'none';
-                        hiddenRows.push(tr);
-                    }
-                });
-            }
-            await new Promise(r => setTimeout(r, 100));
-            const canvas = await html2canvas(a4Container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const imgHeight = (canvas.height * 210) / canvas.width;
-            pdf.addImage(imgData, 'JPEG', 0, 0, 210, imgHeight);
-            pdf.save(`Invoice_${invNum}_${custName}.pdf`);
-        } catch(err) { alert("حدث خطأ أثناء حفظ وتصدير الـ PDF"); }
-        finally {
-            a4Container.classList.remove('pdf-mode');
-            hiddenRows.forEach(tr => tr.style.display = '');
-        }
 
         currentInvoiceNum = getExpectedNextInvoiceNumber();
         invoiceNumberInput.value = currentInvoiceNum;
         editingInvoiceNumber = null;
         clearFormFields();
-        alert(`تم الحفظ والتصدير بنجاح! الفاتورة التالية برقم: ${currentInvoiceNum}`);
+        alert(`تم حفظ الفاتورة بنجاح! الفاتورة التالية برقم: ${currentInvoiceNum}`);
         
         setTimeout(() => customerInput.focus(), 100);
     });
+
+    // تصدير فواتير يوم محدد في ملف PDF واحد
+    document.getElementById('exportDayPDFBtn').addEventListener('click', () => {
+        document.getElementById('exportDayPDFDate').value = new Date().toISOString().split('T')[0];
+        openModal('exportDayPDFModal');
+    });
+
+    async function executeExportDayPDF() {
+        const targetDate = document.getElementById('exportDayPDFDate').value;
+        const targetType = document.getElementById('exportDayPDFType').value;
+        if (!targetDate) { alert("يرجى اختيار التاريخ."); return; }
+
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const filtered = saved.filter(inv => {
+            if (inv.date !== targetDate) return false;
+            if (targetType !== 'all' && (inv.type || 'hospital') !== targetType) return false;
+            return true;
+        }).sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+
+        if (!filtered.length) {
+            alert(`لا توجد فواتير محفوظة بتاريخ ${targetDate}`);
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const a4Container = document.getElementById('a4Wrapper');
+        a4Container.classList.add('pdf-mode');
+
+        // الاحتفاظ بالحالة الحالية للشاشة
+        const currentSavedNum = invoiceNumberInput.value;
+        const currentSavedType = invoiceType;
+
+        try {
+            for (let i = 0; i < filtered.length; i++) {
+                const inv = filtered[i];
+                invoiceType = inv.type || 'hospital';
+                updateInvoiceTypeUI();
+
+                invoiceNumberInput.value = inv.number;
+                invoiceDateInput.value = inv.date;
+                customerInput.value = inv.customer;
+                customerPhone.value = inv.phone || '';
+                document.getElementById('areaInput').value = inv.area || '';
+                document.getElementById('blockInput').value = inv.block || '';
+                streetInput.innerText = inv.street || '';
+                document.getElementById('jedaInput').value = inv.jeda || '';
+                document.getElementById('homeInput').value = inv.home || '';
+
+                invoiceRows.innerHTML = '';
+                inv.items.forEach(item => createRowElement(item));
+                returnsRows.innerHTML = '';
+                if (inv.returns && inv.returns.length) {
+                    inv.returns.forEach(item => createReturnRowElement(item));
+                }
+                if (invoiceType === 'external' && inv.deliveryFee) {
+                    document.getElementById('deliveryFeeInput').value = parseFloat(inv.deliveryFee).toFixed(3);
+                } else {
+                    document.getElementById('deliveryFeeInput').value = '';
+                }
+                updateGrandTotal();
+
+                let hiddenRows = [];
+                if (invoiceType === 'hospital') {
+                    document.querySelectorAll('#invoiceRows tr').forEach(tr => {
+                        const qtyVal = tr.querySelector('.qty-input').value.trim();
+                        if (qtyVal === '' || parseFloat(qtyVal) <= 0) {
+                            tr.style.display = 'none';
+                            hiddenRows.push(tr);
+                        }
+                    });
+                }
+
+                await new Promise(r => setTimeout(r, 100));
+                const canvas = await html2canvas(a4Container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const imgHeight = (canvas.height * 210) / canvas.width;
+
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, 0, 210, imgHeight);
+
+                hiddenRows.forEach(tr => tr.style.display = '');
+            }
+
+            pdf.save(`Invoices_Batch_${targetDate}.pdf`);
+            addLogEntry(`تم تصدير كل فواتير يوم [ ${targetDate} ] دفعة واحدة - عدد: ${filtered.length} في ملف PDF واحد`, false);
+            alert(`تم تصدير ${filtered.length} فاتورة بنجاح في ملف PDF واحد!`);
+            closeModal('exportDayPDFModal');
+        } catch (err) {
+            alert('حدث خطأ أثناء التصدير الجمعي للفواتير.');
+        } finally {
+            a4Container.classList.remove('pdf-mode');
+            invoiceType = currentSavedType;
+            updateInvoiceTypeUI();
+            currentInvoiceNum = getExpectedNextInvoiceNumber();
+            invoiceNumberInput.value = currentInvoiceNum;
+            clearFormFields();
+        }
+    }
 
     function clearFormFields() {
         customerInput.value = '';
@@ -2175,6 +2329,264 @@
         `;
         await exportHTMLToPDF(lastStatementHTML + '<style>' + styles + '</style>', lastStatementFilename);
         addLogEntry(`تم تصدير كشف الحساب للعميل ( ${customer} ) بصيغة PDF.`, false);
+    }
+
+    // تقرير إجمالي أصناف يوم محدد
+    document.getElementById('dailySummaryBtn').addEventListener('click', () => {
+        document.getElementById('dailySummaryDate').value = new Date().toISOString().split('T')[0];
+        openModal('dailySummaryModal');
+    });
+
+    let lastDailySummaryHTML = '';
+    let lastDailySummaryFilename = '';
+
+    function generateDailySummary() {
+        const targetDate = document.getElementById('dailySummaryDate').value;
+        const typeFilter = document.getElementById('dailySummaryType').value;
+        if (!targetDate) { alert("يرجى اختيار التاريخ."); return; }
+
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const filtered = saved.filter(inv => {
+            if (inv.date !== targetDate) return false;
+            if (typeFilter !== 'all' && (inv.type || 'hospital') !== typeFilter) return false;
+            return true;
+        });
+
+        const resultArea = document.getElementById('dailySummaryResultArea');
+        if (!filtered.length) {
+            resultArea.innerHTML = `<div style="text-align:center; padding:30px; color:#c00; font-weight:bold;">لا توجد فواتير مسجلة في هذا التاريخ (${targetDate}).</div>`;
+            lastDailySummaryHTML = ''; return;
+        }
+
+        const itemTotals = {};
+        filtered.forEach(inv => {
+            if (inv.items && Array.isArray(inv.items)) {
+                inv.items.forEach(it => {
+                    const qty = parseFloat(it.qty) || 0;
+                    if (qty > 0 && it.name) {
+                        const cleanName = it.name.trim();
+                        itemTotals[cleanName] = (itemTotals[cleanName] || 0) + qty;
+                    }
+                });
+            }
+        });
+
+        let rowsHTML = '';
+        let idx = 1;
+        let grandTotalQty = 0;
+        for (const [name, qty] of Object.entries(itemTotals).sort()) {
+            grandTotalQty += qty;
+            rowsHTML += `<tr><td>${idx++}</td><td style="text-align:left; padding-left:15px; font-weight:bold;">${name}</td><td style="font-weight:bold; color:#d32f2f;">${qty}</td></tr>`;
+        }
+
+        const dateDisplay = getFormattedDate(new Date(targetDate));
+        const typeLabel = typeFilter === 'all' ? 'All Types' : (typeFilter === 'hospital' ? 'Hospital' : 'External');
+
+        const html = `
+            ${buildStatementCompanyHeader()}
+            <div class="statement-title"><h2>Daily Items Summary Report</h2><div class="sub">تقرير إجمالي أصناف طلبات اليوم</div></div>
+            <div class="statement-info">
+                <div>Date / التاريخ: <b>${dateDisplay}</b></div>
+                <div>Type / النوع: <b>${typeLabel}</b></div>
+                <div>Total Invoices / عدد الفواتير: <b>${filtered.length}</b></div>
+            </div>
+            <table class="statement-table">
+                <thead><tr>
+                    <th style="width:10%;">#</th>
+                    <th style="width:60%; text-align:left; padding-left:15px;">Item Name / اسم الصنف</th>
+                    <th style="width:30%;">Total Quantity / إجمالي الكمية</th>
+                </tr></thead>
+                <tbody>${rowsHTML}</tbody>
+            </table>
+            <div class="statement-summary">
+                <div class="line total"><span>Total Items Quantity / إجمالي الكميات:</span><span class="val">${grandTotalQty}</span></div>
+            </div>
+        `;
+        resultArea.innerHTML = html;
+        lastDailySummaryHTML = html;
+        lastDailySummaryFilename = `Daily_Summary_${targetDate}.pdf`;
+        addLogEntry(`تم إنشاء تقرير إجمالي أصناف اليوم لـ ${targetDate} - عدد الفواتير: ${filtered.length}`, false);
+    }
+
+    async function exportDailySummaryPDF() {
+        if (!lastDailySummaryHTML) { alert("يرجى عرض التقرير أولاً قبل التصدير."); return; }
+        const styles = `
+            .statement-company-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 15px; }
+            .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
+            .statement-company-header .sch-right { text-align: center; align-items: center; font-size: 11px; font-weight: bold; color: #111; line-height: 1.4; min-width: 130px; }
+            .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
+            .statement-company-header .sch-left { min-width: 130px; }
+            .statement-company-header .sch-logo { height: 55px; width: auto; object-fit: contain; }
+            .statement-company-header .sch-brand { font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #000; font-family: Arial, sans-serif; margin-top: 3px; }
+            .statement-company-header .sch-qr { width: 55px; height: 55px; margin-top: 3px; }
+            .statement-title { text-align: center; margin: 12px 0 15px; }
+            .statement-title h2 { font-size: 22px; font-weight: 900; color: #000; font-family: Arial; letter-spacing: 1px; }
+            .statement-title .sub { font-size: 15px; color: #333; margin-top: 4px; font-weight: bold; }
+            .statement-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: bold; margin-bottom: 12px; padding: 12px 15px; background: #fafafa; border-radius: 6px; border: 1px solid #ddd; }
+            .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
+            .statement-table th { border: 1.2px solid #000; background: #333; color: #fff; padding: 9px 6px; font-weight: bold; text-align: center; }
+            .statement-table td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
+            .statement-table tr:nth-child(even) td { background: #f9f9f9; }
+            .statement-summary { display: flex; flex-direction: column; gap: 5px; padding: 12px 18px; background: #fff; border: 2px solid #000; border-radius: 6px; margin-left: auto; min-width: 340px; max-width: 400px; }
+            .statement-summary .line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+            .statement-summary .line.total { border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; font-size: 16px; }
+            .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
+        `;
+        await exportHTMLToPDF(lastDailySummaryHTML + '<style>' + styles + '</style>', lastDailySummaryFilename);
+        addLogEntry('تم تصدير تقرير إجمالي أصناف اليوم بصيغة PDF.', false);
+    }
+
+    // كشف شركة باب الخير (مطابق تماماً للمرفق)
+    document.getElementById('babKhairBtn').addEventListener('click', () => {
+        const now = new Date();
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        document.getElementById('babKhairFromDate').value = firstOfMonth.toISOString().split('T')[0];
+        document.getElementById('babKhairToDate').value = now.toISOString().split('T')[0];
+        openModal('babKhairModal');
+    });
+
+    let lastBabKhairHTML = '';
+    let lastBabKhairFilename = '';
+    let lastBabKhairRowsData = [];
+
+    function generateBabKhairStatement() {
+        const fromDate = document.getElementById('babKhairFromDate').value;
+        const toDate = document.getElementById('babKhairToDate').value;
+
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const filtered = saved.filter(inv => {
+            if ((inv.type || 'hospital') !== 'hospital') return false;
+            if (fromDate && inv.date < fromDate) return false;
+            if (toDate && inv.date > toDate) return false;
+            return true;
+        }).sort((a, b) => (a.date || '').localeCompare(b.date || '') || (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+
+        const resultArea = document.getElementById('babKhairResultArea');
+        if (!filtered.length) {
+            resultArea.innerHTML = `<div style="text-align:center; padding:30px; color:#c00; font-weight:bold;">No hospital invoices found in the selected period.</div>`;
+            lastBabKhairHTML = ''; lastBabKhairRowsData = []; return;
+        }
+
+        lastBabKhairRowsData = filtered;
+
+        let rowsHTML = '';
+        filtered.forEach((inv, idx) => {
+            const grand = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
+            rowsHTML += `<tr>
+                <td style="width: 7%; padding: 5px;">${idx + 1}</td>
+                <td style="width: 18%; padding: 5px;">${inv.date || ''}</td>
+                <td style="width: 18%; padding: 5px; font-weight: 900;">${inv.number || ''}</td>
+                <td style="width: 37%; padding: 5px; text-align: center;">${inv.customer || ''}</td>
+                <td style="width: 20%; padding: 5px; font-weight: 900; color: #d32f2f;">${grand.toFixed(3)}</td>
+            </tr>`;
+        });
+
+        const issueDateStr = getFormattedDate(new Date());
+
+        const html = `
+            <div class="bab-khair-header">
+                <div>
+                    <div class="logo-title">FONDANT CHOCO</div>
+                    <div class="logo-subtitle">High Quality Food & Confectionery Supplies</div>
+                </div>
+                <div class="logo-box">
+                    <img src="https://i.postimg.cc/WbJw6TdV/Orig-LOGO-Square.jpg" crossorigin="anonymous" alt="Logo">
+                </div>
+            </div>
+            <hr class="bab-khair-divider">
+
+            <div class="bab-khair-title-box">
+                <h2>BAB AL-KHAIR CO.</h2>
+                <h3>STATEMENT OF ACCOUNT</h3>
+                <div class="period-str">For the Period From (${fromDate || '—'}) To (${toDate || '—'})</div>
+            </div>
+
+            <div class="bab-khair-meta-bar">
+                <div>Customer Branch: All Branches</div>
+                <div>Issue Date: ${issueDateStr}</div>
+            </div>
+
+            <table class="bab-khair-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Invoice No.</th>
+                        <th>Customer / Branch</th>
+                        <th>Invoice Amount (KD)</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHTML}</tbody>
+            </table>
+        `;
+
+        resultArea.innerHTML = html;
+        lastBabKhairHTML = html;
+        lastBabKhairFilename = `Statement_Bab_Al_Khair_${fromDate}_to_${toDate}.pdf`;
+        addLogEntry(`تم إنشاء كشف حساب شركة باب الخير مطابق للمرفق - عدد الفواتير: ${filtered.length}`, false);
+    }
+
+    async function exportBabKhairPDF() {
+        if (!lastBabKhairHTML) { alert("Please generate the statement first."); return; }
+        const styles = `
+            body { font-family: Arial, sans-serif; direction: ltr; text-align: left; color: #111; }
+            .bab-khair-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 5px; direction: ltr; text-align: left; }
+            .bab-khair-header .logo-title { font-size: 26px; font-weight: 900; color: #000; letter-spacing: 0.5px; }
+            .bab-khair-header .logo-subtitle { font-size: 13px; color: #444; margin-top: 10px; font-weight: bold; }
+            .bab-khair-header .logo-box { text-align: center; }
+            .bab-khair-header .logo-box img { height: 60px; object-fit: contain; }
+            .bab-khair-divider { border: none; border-top: 2.5px solid #222; margin-bottom: 15px; }
+            .bab-khair-title-box { text-align: center; margin-bottom: 15px; direction: ltr; }
+            .bab-khair-title-box h2 { font-size: 24px; font-weight: 900; color: #004494; letter-spacing: 0.8px; margin-bottom: 4px; }
+            .bab-khair-title-box h3 { font-size: 16px; font-weight: 900; color: #111; letter-spacing: 0.5px; margin-bottom: 4px; }
+            .bab-khair-title-box .period-str { font-size: 13.5px; font-weight: bold; color: #333; }
+            .bab-khair-meta-bar { display: flex; justify-content: space-between; align-items: center; border: 1.5px solid #bbb; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: bold; margin-bottom: 12px; background: #fff; direction: ltr; }
+            .bab-khair-table { width: 100%; border-collapse: collapse; font-size: 12.5px; direction: ltr; margin-bottom: 15px; }
+            .bab-khair-table th { border: 1.5px solid #000; background: #fff; color: #000; padding: 6px 4px; font-weight: 900; text-align: center; font-size: 12px; }
+            .bab-khair-table td { border: 1.2px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+        `;
+        await exportHTMLToPDF(lastBabKhairHTML + '<style>' + styles + '</style>', lastBabKhairFilename);
+        addLogEntry('تم تصدير كشف حساب باب الخير PDF.', false);
+    }
+
+    // تصدير كشف باب الخير إلى Excel XLSX
+    function exportBabKhairXLSX() {
+        if (!lastBabKhairRowsData || !lastBabKhairRowsData.length) {
+            alert("Please generate the statement first."); return;
+        }
+
+        const excelData = [];
+        let totalVal = 0;
+
+        lastBabKhairRowsData.forEach((inv, idx) => {
+            const amount = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
+            totalVal += amount;
+            excelData.push({
+                "#": idx + 1,
+                "Date": inv.date || '',
+                "Invoice No.": inv.number || '',
+                "Customer / Branch": inv.customer || '',
+                "Invoice Amount (KD)": amount.toFixed(3)
+            });
+        });
+
+        // إضافة سطر الإجمالي
+        excelData.push({
+            "#": "",
+            "Date": "",
+            "Invoice No.": "",
+            "Customer / Branch": "TOTAL",
+            "Invoice Amount (KD)": totalVal.toFixed(3)
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Bab Al-Khair Statement");
+
+        const fromDate = document.getElementById('babKhairFromDate').value;
+        const toDate = document.getElementById('babKhairToDate').value;
+        XLSX.writeFile(workbook, `Statement_Bab_Al_Khair_${fromDate}_to_${toDate}.xlsx`);
+        addLogEntry('تم تصدير كشف حساب باب الخير إلى ملف Excel (XLSX).', false);
     }
 
     document.getElementById('reportBtn').addEventListener('click', () => {
