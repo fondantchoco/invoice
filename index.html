@@ -339,10 +339,6 @@
 
         #statementResultArea, #reportResultArea, #dailySummaryResultArea, #babKhairResultArea, #dailySalesReportResultArea { padding: 8px; background: #fff; }
 
-        /* ============================================================
-           أنماط ترويسة التقارير — مطبقة دائماً (شاشة + PDF)
-           لضمان صغر حجم الشعار و QR في العرض على الشاشة أيضاً
-           ============================================================ */
         .statement-company-header {
             display: flex; justify-content: space-between; align-items: flex-start;
             padding-bottom: 10px; border-bottom: 2px solid #000;
@@ -417,7 +413,6 @@
             font-family: Arial, sans-serif;
         }
 
-        /* ترويسة كشف باب الخير */
         .bab-khair-header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 8px; margin-bottom: 5px; font-family: Arial, sans-serif;
@@ -2205,22 +2200,33 @@
         }
     });
 
+    // ============================================================
+    // ✅ التعديل: عرض الفواتير المحفوظة مرتبة تنازلياً (آخر فاتورة في الأعلى)
+    // الترتيب حسب رقم الفاتورة (الأعلى أولاً)، مع fallback للتاريخ عند تساوي الأرقام
+    // ============================================================
     function renderSavedInvoicesList() {
         const tbody = document.getElementById('savedInvoicesList');
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         tbody.innerHTML = '';
-        if(!saved.length) tbody.innerHTML = '<tr><td colspan="6">لا توجد فواتير محفوظة.</td></tr>';
-        else {
-            saved.slice().reverse().forEach(inv => {
-                const row = tbody.insertRow();
-                row.insertCell(0).innerText = inv.number;
-                row.insertCell(1).innerText = inv.type === 'external' ? 'خارجية' : 'مستشفيات';
-                row.insertCell(2).innerText = inv.date;
-                row.insertCell(3).innerText = inv.customer;
-                row.insertCell(4).innerText = inv.total;
-                row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice(${inv.number})">استدعاء</button>`;
-            });
+        if(!saved.length) {
+            tbody.innerHTML = '<tr><td colspan="6">لا توجد فواتير محفوظة.</td></tr>';
+            return;
         }
+        const sorted = saved.slice().sort((a, b) => {
+            const numA = parseInt(a.number) || 0;
+            const numB = parseInt(b.number) || 0;
+            if (numB !== numA) return numB - numA;
+            return (b.date || '').localeCompare(a.date || '');
+        });
+        sorted.forEach(inv => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = inv.number;
+            row.insertCell(1).innerText = inv.type === 'external' ? 'خارجية' : 'مستشفيات';
+            row.insertCell(2).innerText = inv.date;
+            row.insertCell(3).innerText = inv.customer;
+            row.insertCell(4).innerText = inv.total;
+            row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice(${inv.number})">استدعاء</button>`;
+        });
     }
 
     document.getElementById('viewInvoicesBtn').addEventListener('click', () => {
@@ -2425,7 +2431,6 @@
     async function exportStatementPDF() {
         if (!lastStatementHTML) { alert("يرجى عرض الكشف أولاً قبل التصدير."); return; }
         const customer = document.getElementById('statementCustomer').value.trim();
-        // لم يعد هناك حاجة لتمرير CSS هنا لأن الكلاسات أصبحت في الـ stylesheet الأساسي
         await exportHTMLToPDF(lastStatementHTML, lastStatementFilename);
         addLogEntry(`تم تصدير كشف الحساب للعميل ( ${customer} ) بصيغة PDF.`, false);
     }
@@ -2750,7 +2755,6 @@
         addLogEntry('تم تصدير تقرير الفواتير بصيغة PDF.', false);
     }
 
-    // ================== تقرير المبيعات اليومية ==================
     let lastDailySalesHTML = '';
     let lastDailySalesFilename = '';
 
@@ -2963,7 +2967,6 @@
             </tr>`;
         });
 
-        // ✅ صف الإجماليات أسفل الجدول مباشرة (مجموع كل عمود تحت عموده)
         const totalsRowHTML = `<tr>
             <td colspan="2" style="text-align:center; font-weight:900; font-size:14px; color:#000;">الإجمالي / TOTAL</td>
             <td style="direction:ltr; font-weight:900; color:#1976d2; font-size:14px;">KD ${grandHospital.toFixed(3)}</td>
