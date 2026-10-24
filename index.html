@@ -33,6 +33,17 @@
             transition: right 0.3s ease;
         }
 
+        #reportsSubmenu {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-right: 3px solid #6f42c1;
+            margin-top: -3px;
+        }
+
         .mobile-header-bar { display: none; }
 
         .btn {
@@ -326,9 +337,87 @@
             min-width: 160px;
         }
 
-        #statementResultArea, #reportResultArea, #dailySummaryResultArea, #babKhairResultArea { padding: 8px; background: #fff; }
+        #statementResultArea, #reportResultArea, #dailySummaryResultArea, #babKhairResultArea, #dailySalesReportResultArea { padding: 8px; background: #fff; }
 
-        /* ترويسة كشف حساب باب الخير مطابق للمرفق تماماً */
+        /* ============================================================
+           أنماط ترويسة التقارير — مطبقة دائماً (شاشة + PDF)
+           لضمان صغر حجم الشعار و QR في العرض على الشاشة أيضاً
+           ============================================================ */
+        .statement-company-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding-bottom: 10px; border-bottom: 2px solid #000;
+            margin-bottom: 15px;
+        }
+        .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
+        .statement-company-header .sch-right {
+            text-align: center; align-items: center; font-size: 11px;
+            font-weight: bold; color: #111; line-height: 1.4; min-width: 130px;
+        }
+        .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
+        .statement-company-header .sch-left { min-width: 130px; }
+        .statement-company-header .sch-logo {
+            height: 55px !important; width: auto !important;
+            max-height: 55px !important; max-width: 55px !important;
+            object-fit: contain;
+        }
+        .statement-company-header .sch-brand {
+            font-size: 18px; font-weight: 900; letter-spacing: 1px;
+            color: #000; font-family: Arial, sans-serif; margin-top: 3px;
+        }
+        .statement-company-header .sch-qr {
+            width: 55px !important; height: 55px !important;
+            max-width: 55px !important; max-height: 55px !important;
+            margin-top: 3px; object-fit: contain;
+        }
+
+        .statement-title { text-align: center; margin: 12px 0 15px; }
+        .statement-title h2 {
+            font-size: 22px; font-weight: 900; color: #000;
+            font-family: Arial; letter-spacing: 1px;
+        }
+        .statement-title .sub { font-size: 15px; color: #333; margin-top: 4px; font-weight: bold; }
+
+        .statement-info {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+            font-size: 13px; font-weight: bold; margin-bottom: 12px;
+            padding: 12px 15px; background: #fafafa; border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        .statement-customer-name { font-size: 22px; color: #d32f2f; font-weight: 900; }
+
+        .statement-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 15px; }
+        .statement-table th {
+            border: 1.2px solid #000; background: #333; color: #fff;
+            padding: 9px 6px; font-weight: bold; text-align: center;
+        }
+        .statement-table td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
+        .statement-table tr:nth-child(even) td { background: #f9f9f9; }
+        .statement-table tfoot td {
+            border: 1.5px solid #000 !important;
+            background: #fff59d !important;
+            padding: 10px 6px; text-align: center;
+        }
+
+        .statement-summary {
+            display: flex; flex-direction: column; gap: 5px;
+            padding: 12px 18px; background: #fff;
+            border: 2px solid #000; border-radius: 6px;
+            margin-left: auto; min-width: 340px; max-width: 400px;
+        }
+        .statement-summary .line {
+            display: flex; justify-content: space-between;
+            font-size: 14px; font-weight: bold;
+        }
+        .statement-summary .line.total {
+            border-top: 2px solid #000; padding-top: 6px;
+            margin-top: 4px; font-size: 16px;
+        }
+        .statement-summary .val {
+            color: #d32f2f; font-weight: 900; direction: ltr;
+            font-family: Arial, sans-serif;
+        }
+
+        /* ترويسة كشف باب الخير */
         .bab-khair-header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 8px; margin-bottom: 5px; font-family: Arial, sans-serif;
@@ -337,7 +426,7 @@
         .bab-khair-header .logo-title { font-size: 26px; font-weight: 900; color: #000; letter-spacing: 0.5px; }
         .bab-khair-header .logo-subtitle { font-size: 13px; color: #444; margin-top: 10px; font-weight: bold; }
         .bab-khair-header .logo-box { text-align: center; }
-        .bab-khair-header .logo-box img { height: 60px; object-fit: contain; }
+        .bab-khair-header .logo-box img { height: 60px; width: auto; object-fit: contain; }
         .bab-khair-divider { border: none; border-top: 2.5px solid #222; margin-bottom: 15px; }
 
         .bab-khair-title-box { text-align: center; margin-bottom: 15px; font-family: Arial, sans-serif; direction: ltr; }
@@ -469,19 +558,25 @@
     <button class="btn btn-primary" onclick="toggleMobileSidebar(); document.getElementById('saveInvoiceBtn').click();">💾 حفظ الفاتورة وتالي</button>
     <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('exportDayPDFBtn').click();">📑 تصدير فواتير يوم محدد (PDF واحد)</button>
     <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('viewInvoicesBtn').click();">📂 الفواتير المحفوظة</button>
-    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('statementBtn').click();">📊 كشف حساب عميل</button>
-    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('dailySummaryBtn').click();">📦 تقرير إجمالي أصناف يوم</button>
-    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('babKhairBtn').click();">🏢 كشف باب الخير (مستشفيات)</button>
-    <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('reportBtn').click();">📈 تقرير الفواتير</button>
-    <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageItemsBtn').click();">⚙️ إدارة أصناف المستشفيات</button>
-    <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('manageExternalItemsBtn').click();">⚙️ إدارة الأصناف الخارجية</button>
-    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('manageHospitalNamesBtn').click();">🏥 إدارة أسماء المستشفيات</button>
-    <button class="btn btn-orange" onclick="toggleMobileSidebar(); document.getElementById('manageExternalCustomersBtn').click();">🏢 إدارة العملاء الخارجيين</button>
-    <button class="btn btn-success-dark" onclick="toggleMobileSidebar(); document.getElementById('exportBackupBtn').click();">💾 تصدير نسخة احتياطية</button>
+
+    <button class="btn btn-purple" onclick="toggleReportsSubmenu()" style="margin-top: 5px;">📊 التقارير والإعدادات ▾</button>
+    <div id="reportsSubmenu">
+        <button class="btn btn-purple" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('statementBtn').click();">📊 كشف حساب عميل</button>
+        <button class="btn btn-purple" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('dailySummaryBtn').click();">📦 تقرير إجمالي أصناف يوم</button>
+        <button class="btn btn-orange" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('babKhairBtn').click();">🏢 كشف باب الخير</button>
+        <button class="btn btn-purple" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('reportBtn').click();">📈 تقرير الفواتير</button>
+        <button class="btn btn-success-dark" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('dailySalesBtn').click();">💰 تقرير المبيعات اليومية</button>
+        <hr style="border: none; border-top: 1px solid #ccc; margin: 3px 0;">
+        <button class="btn btn-info" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageItemsBtn').click();">⚙️ إدارة أصناف المستشفيات</button>
+        <button class="btn btn-info" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageExternalItemsBtn').click();">⚙️ إدارة الأصناف الخارجية</button>
+        <button class="btn btn-orange" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageHospitalNamesBtn').click();">🏥 إدارة أسماء المستشفيات</button>
+        <button class="btn btn-orange" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageExternalCustomersBtn').click();">🏢 إدارة العملاء الخارجيين</button>
+    </div>
+
+    <button class="btn btn-success-dark" onclick="toggleMobileSidebar(); document.getElementById('exportBackupBtn').click();" style="margin-top: 5px;">💾 تصدير نسخة احتياطية</button>
     <button class="btn btn-warning" onclick="toggleMobileSidebar(); document.getElementById('backupFileInput').click();">📂 استعادة نسخة احتياطية</button>
     <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="importBackup(event)">
     <button class="btn btn-secondary" onclick="toggleMobileSidebar(); document.getElementById('viewLogsBtn').click();">📜 سجل الحركات</button>
-    <button class="btn btn-primary" style="background:#1976d2;" onclick="toggleMobileSidebar(); forceUpdateItemNames();">🔄 تحديث أسماء الأصناف (دون فقد البيانات)</button>
     <button class="btn btn-danger" onclick="toggleMobileSidebar(); document.getElementById('clearInvoiceBtn').click();">🗑️ إعادة تحميل كل الاصناف للفاتورة</button>
 </div>
 
@@ -493,6 +588,7 @@
     <button id="dailySummaryBtn">تقرير يومي</button>
     <button id="babKhairBtn">باب الخير</button>
     <button id="reportBtn">تقرير</button>
+    <button id="dailySalesBtn">تقرير المبيعات اليومية</button>
     <button id="manageItemsBtn">أصناف مستشفيات</button>
     <button id="manageExternalItemsBtn">أصناف خارجية</button>
     <button id="manageHospitalNamesBtn">أسماء مستشفيات</button>
@@ -509,7 +605,6 @@
         <button type="button" class="invoice-type-btn" data-type="external">🚚 فاتورة خارجية</button>
     </div>
 
-    <!-- A4 Container - مسافة 0.6 سم من كل الجوانب -->
     <div class="a4-page-wrapper" id="a4Wrapper">
         <div class="invoice-paper" id="invoiceContainer">
             <div class="invoice-content">
@@ -814,6 +909,38 @@
     </div>
 </div>
 
+<!-- Modal تقرير المبيعات اليومية -->
+<div class="modal-overlay" id="dailySalesReportModal">
+    <div class="modal-content" style="max-width: 1100px;">
+        <div class="modal-header">
+            <h3>💰 تقرير المبيعات اليومية / Daily Sales Report</h3>
+            <button class="btn btn-danger" style="width: auto;" onclick="closeModal('dailySalesReportModal')">إغلاق ✖</button>
+        </div>
+        <div class="statement-filters no-print">
+            <div>
+                <label>من تاريخ / From:</label>
+                <input type="date" id="dailySalesFromDate">
+            </div>
+            <div>
+                <label>إلى تاريخ / To:</label>
+                <input type="date" id="dailySalesToDate">
+            </div>
+            <button class="btn btn-primary" style="width: auto; padding: 8px 20px;" onclick="generateDailySalesReport()">🔍 عرض التقرير</button>
+            <button class="btn btn-success" style="width: auto; padding: 8px 20px;" onclick="exportDailySalesPDF()">📄 تصدير PDF</button>
+            <button class="btn btn-orange" style="width: auto; padding: 8px 20px;" onclick="document.getElementById('hospitalExcelFileInput').click()">📥 استيراد Excel</button>
+            <button class="btn btn-danger" style="width: auto; padding: 8px 20px;" onclick="clearImportedHospitalSales()">🗑️ مسح المستورد</button>
+            <input type="file" id="hospitalExcelFileInput" style="display: none;" accept=".xlsx,.xls" onchange="importHospitalExcel(event)">
+        </div>
+        <div id="dailySalesImportInfo" style="padding: 10px 14px; background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; font-size: 13px; font-weight: bold; color: #0d47a1; margin-bottom: 12px;"></div>
+        <div id="dailySalesReportResultArea">
+            <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
+                اختر الفترة الزمنية ثم اضغط "🔍 عرض التقرير"<br>
+                <small style="font-size:12px; display:block; margin-top:8px;">💡 يمكنك استيراد ملف Excel لمبيعات المستشفيات (التاريخ، رقم الفاتورة، اسم العميل، المبلغ) لدمجها مع بيانات النظام</small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal سجل الحركات -->
 <div class="modal-overlay" id="logsModal">
     <div class="modal-content">
@@ -948,6 +1075,15 @@
         sidebar.classList.toggle('mobile-open');
     }
 
+    function toggleReportsSubmenu(forceState) {
+        const submenu = document.getElementById('reportsSubmenu');
+        if (forceState === false) {
+            submenu.style.display = 'none';
+        } else {
+            submenu.style.display = submenu.style.display === 'none' ? 'flex' : 'none';
+        }
+    }
+
     function openModal(id) {
         document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
         document.getElementById(id).style.display = 'flex';
@@ -1028,6 +1164,7 @@
             hospital_customers: localStorage.getItem('fondant_hospital_customers'),
             external_customers: localStorage.getItem('fondant_external_customers'),
             external_customers_meta: localStorage.getItem('fondant_external_customers_meta'),
+            imported_hospital_sales: localStorage.getItem('fondant_imported_hospital_sales'),
             backup_time: Date.now()
         };
         const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -1059,6 +1196,7 @@
                 if (data.hospital_customers) localStorage.setItem('fondant_hospital_customers', data.hospital_customers);
                 if (data.external_customers) localStorage.setItem('fondant_external_customers', data.external_customers);
                 if (data.external_customers_meta) localStorage.setItem('fondant_external_customers_meta', data.external_customers_meta);
+                if (data.imported_hospital_sales) localStorage.setItem('fondant_imported_hospital_sales', data.imported_hospital_sales);
                 localStorage.setItem('fondant_last_backup_time', Date.now());
                 alert("تم استعادة النسخة الاحتياطية بنجاح! سيتم تحديث الصفحة الآن.");
                 location.reload();
@@ -1271,20 +1409,6 @@
         } catch(e) { console.error('migrateAddNewItems error:', e); }
 
         return { added: addedCount, renamed: renamedCount };
-    }
-
-    function forceUpdateItemNames() {
-        if (!confirm('سيتم تحديث أسماء الأصناف المخزّنة إلى الأسماء المصححة.\n\n⚠️ لن تتأثر الفواتير المحفوظة أو أي بيانات أخرى.\n\nهل تريد المتابعة؟')) return;
-        const result = migrateItemNames();
-        const newItemsMigration = migrateAddNewItems();
-        const totalChanged = result.changed + newItemsMigration.added + newItemsMigration.renamed;
-        if (totalChanged > 0) {
-            alert(`✅ تم تحديث ${result.changed} اسم صنف، وإعادة تسمية ${newItemsMigration.renamed} صنف (Cristal→Crystal)، وإضافة ${newItemsMigration.added} صنف جديد!\nسيتم تحديث الصفحة لرؤية التغييرات.`);
-            addLogEntry(`تم تحديث أسماء الأصناف يدوياً (${result.changed} تعديل) + إعادة تسمية ${newItemsMigration.renamed} + إضافة ${newItemsMigration.added}`, false);
-            location.reload();
-        } else {
-            alert('لا يوجد أصناف بحاجة للتحديث - جميع الأسماء مصححة مسبقاً والأصناف الجديدة موجودة بالترتيب الصحيح.');
-        }
     }
 
     migrateItemNames();
@@ -1825,7 +1949,6 @@
         finally { document.body.removeChild(temp); }
     }
 
-    // زر الحفظ فقط (بدون تصدير PDF تلقائي)
     document.getElementById('saveInvoiceBtn').addEventListener('click', function() {
         if(!customerInput.value.trim()) { alert("يرجى إدخال اسم العميل أولاً."); return; }
 
@@ -1963,7 +2086,6 @@
         setTimeout(() => customerInput.focus(), 100);
     });
 
-    // تصدير فواتير يوم محدد في ملف PDF واحد
     document.getElementById('exportDayPDFBtn').addEventListener('click', () => {
         document.getElementById('exportDayPDFDate').value = new Date().toISOString().split('T')[0];
         openModal('exportDayPDFModal');
@@ -1991,7 +2113,6 @@
         const a4Container = document.getElementById('a4Wrapper');
         a4Container.classList.add('pdf-mode');
 
-        // الاحتفاظ بالحالة الحالية للشاشة
         const currentSavedNum = invoiceNumberInput.value;
         const currentSavedType = invoiceType;
 
@@ -2304,34 +2425,11 @@
     async function exportStatementPDF() {
         if (!lastStatementHTML) { alert("يرجى عرض الكشف أولاً قبل التصدير."); return; }
         const customer = document.getElementById('statementCustomer').value.trim();
-        const styles = `
-            .statement-company-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 15px; }
-            .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
-            .statement-company-header .sch-right { text-align: center; align-items: center; font-size: 11px; font-weight: bold; color: #111; line-height: 1.4; min-width: 130px; }
-            .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
-            .statement-company-header .sch-left { min-width: 130px; }
-            .statement-company-header .sch-logo { height: 55px; width: auto; object-fit: contain; }
-            .statement-company-header .sch-brand { font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #000; font-family: Arial, sans-serif; margin-top: 3px; }
-            .statement-company-header .sch-qr { width: 55px; height: 55px; margin-top: 3px; }
-            .statement-title { text-align: center; margin: 12px 0 15px; }
-            .statement-title h2 { font-size: 22px; font-weight: 900; color: #000; font-family: Arial; letter-spacing: 1px; }
-            .statement-title .sub { font-size: 15px; color: #333; margin-top: 4px; font-weight: bold; }
-            .statement-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: bold; margin-bottom: 12px; padding: 12px 15px; background: #fafafa; border-radius: 6px; border: 1px solid #ddd; }
-            .statement-customer-name { font-size: 22px; color: #d32f2f; font-weight: 900; }
-            .statement-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 15px; }
-            .statement-table th { border: 1.2px solid #000; background: #333; color: #fff; padding: 9px 6px; font-weight: bold; text-align: center; }
-            .statement-table td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
-            .statement-table tr:nth-child(even) td { background: #f9f9f9; }
-            .statement-summary { display: flex; flex-direction: column; gap: 5px; padding: 12px 18px; background: #fff; border: 2px solid #000; border-radius: 6px; margin-left: auto; min-width: 340px; max-width: 400px; }
-            .statement-summary .line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
-            .statement-summary .line.total { border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; font-size: 16px; }
-            .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
-        `;
-        await exportHTMLToPDF(lastStatementHTML + '<style>' + styles + '</style>', lastStatementFilename);
+        // لم يعد هناك حاجة لتمرير CSS هنا لأن الكلاسات أصبحت في الـ stylesheet الأساسي
+        await exportHTMLToPDF(lastStatementHTML, lastStatementFilename);
         addLogEntry(`تم تصدير كشف الحساب للعميل ( ${customer} ) بصيغة PDF.`, false);
     }
 
-    // تقرير إجمالي أصناف يوم محدد
     document.getElementById('dailySummaryBtn').addEventListener('click', () => {
         document.getElementById('dailySummaryDate').value = new Date().toISOString().split('T')[0];
         openModal('dailySummaryModal');
@@ -2410,33 +2508,10 @@
 
     async function exportDailySummaryPDF() {
         if (!lastDailySummaryHTML) { alert("يرجى عرض التقرير أولاً قبل التصدير."); return; }
-        const styles = `
-            .statement-company-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 15px; }
-            .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
-            .statement-company-header .sch-right { text-align: center; align-items: center; font-size: 11px; font-weight: bold; color: #111; line-height: 1.4; min-width: 130px; }
-            .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
-            .statement-company-header .sch-left { min-width: 130px; }
-            .statement-company-header .sch-logo { height: 55px; width: auto; object-fit: contain; }
-            .statement-company-header .sch-brand { font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #000; font-family: Arial, sans-serif; margin-top: 3px; }
-            .statement-company-header .sch-qr { width: 55px; height: 55px; margin-top: 3px; }
-            .statement-title { text-align: center; margin: 12px 0 15px; }
-            .statement-title h2 { font-size: 22px; font-weight: 900; color: #000; font-family: Arial; letter-spacing: 1px; }
-            .statement-title .sub { font-size: 15px; color: #333; margin-top: 4px; font-weight: bold; }
-            .statement-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: bold; margin-bottom: 12px; padding: 12px 15px; background: #fafafa; border-radius: 6px; border: 1px solid #ddd; }
-            .statement-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; }
-            .statement-table th { border: 1.2px solid #000; background: #333; color: #fff; padding: 9px 6px; font-weight: bold; text-align: center; }
-            .statement-table td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
-            .statement-table tr:nth-child(even) td { background: #f9f9f9; }
-            .statement-summary { display: flex; flex-direction: column; gap: 5px; padding: 12px 18px; background: #fff; border: 2px solid #000; border-radius: 6px; margin-left: auto; min-width: 340px; max-width: 400px; }
-            .statement-summary .line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
-            .statement-summary .line.total { border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; font-size: 16px; }
-            .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
-        `;
-        await exportHTMLToPDF(lastDailySummaryHTML + '<style>' + styles + '</style>', lastDailySummaryFilename);
+        await exportHTMLToPDF(lastDailySummaryHTML, lastDailySummaryFilename);
         addLogEntry('تم تصدير تقرير إجمالي أصناف اليوم بصيغة PDF.', false);
     }
 
-    // كشف شركة باب الخير (مطابق تماماً للمرفق)
     document.getElementById('babKhairBtn').addEventListener('click', () => {
         const now = new Date();
         const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -2528,28 +2603,10 @@
 
     async function exportBabKhairPDF() {
         if (!lastBabKhairHTML) { alert("Please generate the statement first."); return; }
-        const styles = `
-            body { font-family: Arial, sans-serif; direction: ltr; text-align: left; color: #111; }
-            .bab-khair-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 5px; direction: ltr; text-align: left; }
-            .bab-khair-header .logo-title { font-size: 26px; font-weight: 900; color: #000; letter-spacing: 0.5px; }
-            .bab-khair-header .logo-subtitle { font-size: 13px; color: #444; margin-top: 10px; font-weight: bold; }
-            .bab-khair-header .logo-box { text-align: center; }
-            .bab-khair-header .logo-box img { height: 60px; object-fit: contain; }
-            .bab-khair-divider { border: none; border-top: 2.5px solid #222; margin-bottom: 15px; }
-            .bab-khair-title-box { text-align: center; margin-bottom: 15px; direction: ltr; }
-            .bab-khair-title-box h2 { font-size: 24px; font-weight: 900; color: #004494; letter-spacing: 0.8px; margin-bottom: 4px; }
-            .bab-khair-title-box h3 { font-size: 16px; font-weight: 900; color: #111; letter-spacing: 0.5px; margin-bottom: 4px; }
-            .bab-khair-title-box .period-str { font-size: 13.5px; font-weight: bold; color: #333; }
-            .bab-khair-meta-bar { display: flex; justify-content: space-between; align-items: center; border: 1.5px solid #bbb; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: bold; margin-bottom: 12px; background: #fff; direction: ltr; }
-            .bab-khair-table { width: 100%; border-collapse: collapse; font-size: 12.5px; direction: ltr; margin-bottom: 15px; }
-            .bab-khair-table th { border: 1.5px solid #000; background: #fff; color: #000; padding: 6px 4px; font-weight: 900; text-align: center; font-size: 12px; }
-            .bab-khair-table td { border: 1.2px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
-        `;
-        await exportHTMLToPDF(lastBabKhairHTML + '<style>' + styles + '</style>', lastBabKhairFilename);
+        await exportHTMLToPDF(lastBabKhairHTML, lastBabKhairFilename);
         addLogEntry('تم تصدير كشف حساب باب الخير PDF.', false);
     }
 
-    // تصدير كشف باب الخير إلى Excel XLSX
     function exportBabKhairXLSX() {
         if (!lastBabKhairRowsData || !lastBabKhairRowsData.length) {
             alert("Please generate the statement first."); return;
@@ -2570,7 +2627,6 @@
             });
         });
 
-        // إضافة سطر الإجمالي
         excelData.push({
             "#": "",
             "Date": "",
@@ -2690,30 +2746,271 @@
 
     async function exportReportPDF() {
         if (!lastReportHTML) { alert("يرجى عرض التقرير أولاً قبل التصدير."); return; }
-        const styles = `
-            .statement-company-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 15px; }
-            .statement-company-header .sch-col { display: flex; flex-direction: column; gap: 2px; }
-            .statement-company-header .sch-right { text-align: center; align-items: center; font-size: 11px; font-weight: bold; color: #111; line-height: 1.4; min-width: 130px; }
-            .statement-company-header .sch-center { text-align: center; align-items: center; flex: 1; }
-            .statement-company-header .sch-left { min-width: 130px; }
-            .statement-company-header .sch-logo { height: 55px; width: auto; object-fit: contain; }
-            .statement-company-header .sch-brand { font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #000; font-family: Arial, sans-serif; margin-top: 3px; }
-            .statement-company-header .sch-qr { width: 55px; height: 55px; margin-top: 3px; }
-            .statement-title { text-align: center; margin: 12px 0 15px; }
-            .statement-title h2 { font-size: 22px; font-weight: 900; color: #000; font-family: Arial; letter-spacing: 1px; }
-            .statement-title .sub { font-size: 15px; color: #333; margin-top: 4px; font-weight: bold; }
-            .statement-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12px; font-weight: bold; margin-bottom: 12px; padding: 12px 15px; background: #fafafa; border-radius: 6px; border: 1px solid #ddd; }
-            .statement-table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 15px; }
-            .statement-table th { border: 1.2px solid #000; background: #333; color: #fff; padding: 7px 4px; font-weight: bold; text-align: center; font-size: 10px; }
-            .statement-table td { border: 1px solid #999; padding: 6px 4px; text-align: center; }
-            .statement-table tr:nth-child(even) td { background: #f9f9f9; }
-            .statement-summary { display: flex; flex-direction: column; gap: 5px; padding: 12px 18px; background: #fff; border: 2px solid #000; border-radius: 6px; margin-left: auto; min-width: 340px; max-width: 400px; }
-            .statement-summary .line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
-            .statement-summary .line.total { border-top: 2px solid #000; padding-top: 6px; margin-top: 4px; font-size: 16px; }
-            .statement-summary .val { color: #d32f2f; font-weight: 900; direction: ltr; font-family: Arial, sans-serif; }
-        `;
-        await exportHTMLToPDF(lastReportHTML + '<style>' + styles + '</style>', lastReportFilename);
+        await exportHTMLToPDF(lastReportHTML, lastReportFilename);
         addLogEntry('تم تصدير تقرير الفواتير بصيغة PDF.', false);
+    }
+
+    // ================== تقرير المبيعات اليومية ==================
+    let lastDailySalesHTML = '';
+    let lastDailySalesFilename = '';
+
+    document.getElementById('dailySalesBtn').addEventListener('click', () => {
+        const now = new Date();
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        document.getElementById('dailySalesFromDate').value = firstOfMonth.toISOString().split('T')[0];
+        document.getElementById('dailySalesToDate').value = now.toISOString().split('T')[0];
+        updateDailySalesImportInfo();
+        openModal('dailySalesReportModal');
+    });
+
+    function updateDailySalesImportInfo() {
+        const imported = JSON.parse(localStorage.getItem('fondant_imported_hospital_sales') || '[]');
+        const infoDiv = document.getElementById('dailySalesImportInfo');
+        if (imported.length > 0) {
+            infoDiv.innerHTML = `📊 يوجد <b>${imported.length}</b> سطر مستورد من ملفات Excel لمبيعات المستشفيات يتم دمجها مع بيانات النظام في التقرير (مع منع التكرار حسب رقم الفاتورة والتاريخ).`;
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.innerHTML = `ℹ️ لم يتم استيراد أي ملف Excel بعد. استخدم زر "📥 استيراد Excel" لإضافة بيانات مبيعات المستشفيات القديمة (التاريخ، رقم الفاتورة، اسم العميل، المبلغ).`;
+            infoDiv.style.display = 'block';
+        }
+    }
+
+    function normalizeExcelDate(dateVal) {
+        if (dateVal === null || dateVal === undefined || dateVal === '') return '';
+        if (typeof dateVal === 'number') {
+            const utcDays = Math.floor(dateVal - 25569);
+            const utcMs = utcDays * 86400 * 1000;
+            const d = new Date(utcMs);
+            return d.toISOString().split('T')[0];
+        }
+        if (dateVal instanceof Date) {
+            return dateVal.toISOString().split('T')[0];
+        }
+        const str = String(dateVal).trim();
+        let m = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+        if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+        m = str.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+        if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+        const parsed = new Date(str);
+        if (!isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+        return str;
+    }
+
+    function parseExcelAmount(val) {
+        if (typeof val === 'number') return val;
+        if (!val) return 0;
+        const cleaned = String(val).replace(/[^\d.\-]/g, '');
+        return parseFloat(cleaned) || 0;
+    }
+
+    function findExcelValue(row, keys) {
+        for (const key of keys) {
+            if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+        }
+        return null;
+    }
+
+    function importHospitalExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+
+                if (!jsonData.length) {
+                    alert('الملف فارغ أو لا يحتوي على بيانات في الورقة الأولى.');
+                    event.target.value = '';
+                    return;
+                }
+
+                let imported = JSON.parse(localStorage.getItem('fondant_imported_hospital_sales') || '[]');
+                const existingKeys = new Set(imported.map(r => `${r.date}||${r.invoiceNumber}||${r.customer}||${r.amount}`));
+
+                let addedCount = 0;
+                let skippedCount = 0;
+
+                jsonData.forEach(row => {
+                    const dateVal = findExcelValue(row, ['التاريخ', 'تاريخ', 'Date', 'date', 'DATE', 'التاريخ ']);
+                    const invoiceNumVal = findExcelValue(row, ['رقم الفاتورة', 'رقم الفاتوره', 'رقم فاتورة', 'Invoice No', 'Invoice Number', 'Invoice', 'invoice', 'Invoice No.', 'رقم الفاتورة ']);
+                    const customerVal = findExcelValue(row, ['اسم العميل', 'اسم عميل', 'العميل', 'Customer', 'Customer Name', 'customer', 'Name', 'اسم العميل ']);
+                    const amountVal = findExcelValue(row, ['المبلغ', 'مبلغ', 'Amount', 'amount', 'Total', 'total', 'المبلغ ']);
+
+                    if (dateVal === null || amountVal === null) return;
+
+                    const normalizedDate = normalizeExcelDate(dateVal);
+                    const normalizedAmount = parseExcelAmount(amountVal);
+                    const invoiceStr = invoiceNumVal !== null ? String(invoiceNumVal).trim() : '';
+                    const customerStr = customerVal !== null ? String(customerVal).trim() : '';
+
+                    if (!normalizedDate) return;
+
+                    const rowKey = `${normalizedDate}||${invoiceStr}||${customerStr}||${normalizedAmount}`;
+                    if (existingKeys.has(rowKey)) { skippedCount++; return; }
+
+                    imported.push({
+                        date: normalizedDate,
+                        invoiceNumber: invoiceStr,
+                        customer: customerStr,
+                        amount: normalizedAmount,
+                        importedAt: new Date().toISOString()
+                    });
+                    existingKeys.add(rowKey);
+                    addedCount++;
+                });
+
+                localStorage.setItem('fondant_imported_hospital_sales', JSON.stringify(imported));
+                event.target.value = '';
+
+                let msg = `✅ تم استيراد ${addedCount} سطر جديد بنجاح!\n`;
+                if (skippedCount > 0) msg += `تم تخطي ${skippedCount} سطر مكرر (موجود مسبقاً).\n`;
+                msg += `\nإجمالي السطور المستوردة الآن: ${imported.length}`;
+                alert(msg);
+
+                addLogEntry(`تم استيراد ${addedCount} سطر من ملف Excel للمبيعات (تخطي ${skippedCount} مكرر)`, false);
+                updateDailySalesImportInfo();
+                generateDailySalesReport();
+            } catch(err) {
+                alert('حدث خطأ أثناء قراءة ملف Excel:\n' + err.message);
+                event.target.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function clearImportedHospitalSales() {
+        const imported = JSON.parse(localStorage.getItem('fondant_imported_hospital_sales') || '[]');
+        if (!imported.length) { alert('لا يوجد بيانات مستوردة لمسحها.'); return; }
+        if (!confirm(`هل أنت متأكد من مسح ${imported.length} سطر مستورد من ملف Excel؟\n\n⚠️ سيتم حذفها نهائياً من التقرير.`)) return;
+        localStorage.removeItem('fondant_imported_hospital_sales');
+        addLogEntry(`تم مسح البيانات المستوردة من Excel ( ${imported.length} سطر )`, false);
+        updateDailySalesImportInfo();
+        document.getElementById('dailySalesReportResultArea').innerHTML = '<div style="text-align:center; padding:30px; color:#999; font-size:14px;">تم مسح البيانات المستوردة. اضغط "🔍 عرض التقرير" لرؤية النتائج.</div>';
+        lastDailySalesHTML = '';
+    }
+
+    function generateDailySalesReport() {
+        const fromDate = document.getElementById('dailySalesFromDate').value;
+        const toDate = document.getElementById('dailySalesToDate').value;
+
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const imported = JSON.parse(localStorage.getItem('fondant_imported_hospital_sales') || '[]');
+
+        const systemHospitalKeys = new Set();
+        saved.forEach(inv => {
+            if ((inv.type || 'hospital') === 'hospital') {
+                systemHospitalKeys.add(`${String(inv.number).trim()}||${inv.date}`);
+            }
+        });
+
+        const dailyTotals = {};
+
+        saved.forEach(inv => {
+            if (!inv.date) return;
+            if (fromDate && inv.date < fromDate) return;
+            if (toDate && inv.date > toDate) return;
+            if (!dailyTotals[inv.date]) dailyTotals[inv.date] = { hospital: 0, external: 0 };
+            const total = parseFloat((inv.total || '0').replace(/[^\d.]/g, '')) || 0;
+            if ((inv.type || 'hospital') === 'hospital') {
+                dailyTotals[inv.date].hospital += total;
+            } else {
+                dailyTotals[inv.date].external += total;
+            }
+        });
+
+        let importedUsedCount = 0;
+        let importedSkippedCount = 0;
+        imported.forEach(row => {
+            if (!row.date) return;
+            if (fromDate && row.date < fromDate) return;
+            if (toDate && row.date > toDate) return;
+            const rowKey = `${String(row.invoiceNumber || '').trim()}||${row.date}`;
+            if (row.invoiceNumber && systemHospitalKeys.has(rowKey)) {
+                importedSkippedCount++;
+                return;
+            }
+            if (!dailyTotals[row.date]) dailyTotals[row.date] = { hospital: 0, external: 0 };
+            dailyTotals[row.date].hospital += parseFloat(row.amount) || 0;
+            importedUsedCount++;
+        });
+
+        const resultArea = document.getElementById('dailySalesReportResultArea');
+        const sortedDates = Object.keys(dailyTotals).sort();
+
+        if (!sortedDates.length) {
+            resultArea.innerHTML = `<div style="text-align:center; padding:30px; color:#c00; font-weight:bold;">لا توجد بيانات في الفترة المحددة.</div>`;
+            lastDailySalesHTML = '';
+            return;
+        }
+
+        let rowsHTML = '';
+        let grandHospital = 0, grandExternal = 0;
+        sortedDates.forEach((date, idx) => {
+            const h = dailyTotals[date].hospital;
+            const ex = dailyTotals[date].external;
+            grandHospital += h;
+            grandExternal += ex;
+            const dateDisplay = getFormattedDate(new Date(date + 'T00:00:00'));
+            rowsHTML += `<tr>
+                <td>${idx + 1}</td>
+                <td style="font-weight:bold;">${dateDisplay}</td>
+                <td style="direction:ltr; font-weight:bold; color:#1976d2;">KD ${h.toFixed(3)}</td>
+                <td style="direction:ltr; font-weight:bold; color:#20c997;">KD ${ex.toFixed(3)}</td>
+                <td style="direction:ltr; font-weight:bold; color:#d32f2f;">KD ${(h + ex).toFixed(3)}</td>
+            </tr>`;
+        });
+
+        // ✅ صف الإجماليات أسفل الجدول مباشرة (مجموع كل عمود تحت عموده)
+        const totalsRowHTML = `<tr>
+            <td colspan="2" style="text-align:center; font-weight:900; font-size:14px; color:#000;">الإجمالي / TOTAL</td>
+            <td style="direction:ltr; font-weight:900; color:#1976d2; font-size:14px;">KD ${grandHospital.toFixed(3)}</td>
+            <td style="direction:ltr; font-weight:900; color:#20c997; font-size:14px;">KD ${grandExternal.toFixed(3)}</td>
+            <td style="direction:ltr; font-weight:900; color:#d32f2f; font-size:14px;">KD ${(grandHospital + grandExternal).toFixed(3)}</td>
+        </tr>`;
+
+        let importNote = '';
+        if (importedUsedCount > 0 || importedSkippedCount > 0) {
+            importNote = `<div style="font-size:11.5px; color:#666; margin-top:8px; padding:8px 12px; background:#f5f5f5; border-radius:4px;">
+                ℹ️ تم دمج <b>${importedUsedCount}</b> سطر من ملف Excel في التقرير${importedSkippedCount > 0 ? ` (وتم تخطي <b>${importedSkippedCount}</b> سطر موجود مسبقاً في النظام)` : ''}.
+            </div>`;
+        }
+
+        const fromDisplay = fromDate ? getFormattedDate(new Date(fromDate + 'T00:00:00')) : '—';
+        const toDisplay = toDate ? getFormattedDate(new Date(toDate + 'T00:00:00')) : '—';
+
+        const html = `
+            ${buildStatementCompanyHeader()}
+            <div class="statement-title"><h2>Daily Sales Report</h2><div class="sub">تقرير المبيعات اليومية</div></div>
+            <div class="statement-info">
+                <div>الفترة / Period: <b>${fromDisplay}</b> — <b>${toDisplay}</b></div>
+                <div>عدد الأيام / Days: <b>${sortedDates.length}</b></div>
+            </div>
+            <table class="statement-table">
+                <thead><tr>
+                    <th style="width:8%;">#</th>
+                    <th style="width:22%;">التاريخ<br>Date</th>
+                    <th style="width:25%;">مبيعات المستشفيات<br>Hospital Sales</th>
+                    <th style="width:25%;">المبيعات الخارجية<br>External Sales</th>
+                    <th style="width:20%;">الإجمالي<br>Total</th>
+                </tr></thead>
+                <tbody>${rowsHTML}</tbody>
+                <tfoot>${totalsRowHTML}</tfoot>
+            </table>
+            ${importNote}
+        `;
+        resultArea.innerHTML = html;
+        lastDailySalesHTML = html;
+        lastDailySalesFilename = `Daily_Sales_Report_${fromDate || 'all'}_to_${toDate || 'all'}.pdf`;
+        addLogEntry(`تم إنشاء تقرير المبيعات اليومية من ${fromDisplay} إلى ${toDisplay}`, false);
+    }
+
+    async function exportDailySalesPDF() {
+        if (!lastDailySalesHTML) { alert("يرجى عرض التقرير أولاً قبل التصدير."); return; }
+        await exportHTMLToPDF(lastDailySalesHTML, lastDailySalesFilename);
+        addLogEntry('تم تصدير تقرير المبيعات اليومية بصيغة PDF.', false);
     }
 
     document.getElementById('manageItemsBtn').addEventListener('click', () => {
