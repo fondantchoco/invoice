@@ -184,7 +184,11 @@
         .pdf-mode #invoiceRows tr.row-active td, .pdf-mode #returnsRows tr.row-active td { background: #ffffff !important; }
 
         /* =================================================================
-           أنماط خاصة بتقرير كميات أصناف المستشفيات — لضبطه في صفحة A4 واحدة
+           أنماط تقرير كميات أصناف المستشفيات
+           - اسم المستشفى كامل (يلتف بدل القص)
+           - اسم المستشفى: +10% خط (10.5px)
+           - الأرقام: -5% خط (21px بدل 22px / 22px بدل 23px)
+           - ارتفاع الصفوف: +10% (padding 3.3px بدل 3px)
            ================================================================= */
         .hospital-items-report { padding: 0; margin: 0; }
         .hospital-items-report .statement-company-header {
@@ -205,15 +209,9 @@
         .hospital-items-report .statement-company-header .sch-brand {
             font-size: 11px !important; margin-top: 1px !important;
         }
-        .hospital-items-report .statement-title {
-            margin: 3px 0 5px !important;
-        }
-        .hospital-items-report .statement-title h2 {
-            font-size: 13px !important; letter-spacing: 0.4px !important;
-        }
-        .hospital-items-report .statement-title .sub {
-            font-size: 9.5px !important; margin-top: 1px !important;
-        }
+        .hospital-items-report .statement-title { margin: 3px 0 5px !important; }
+        .hospital-items-report .statement-title h2 { font-size: 13px !important; letter-spacing: 0.4px !important; }
+        .hospital-items-report .statement-title .sub { font-size: 9.5px !important; margin-top: 1px !important; }
         .hospital-items-report .statement-info {
             font-size: 9px !important; padding: 4px 8px !important;
             margin-bottom: 4px !important; gap: 5px !important;
@@ -235,28 +233,36 @@
             font-size: 8px !important; line-height: 1.1 !important;
         }
         .hospital-items-report .statement-table td {
-            padding: 2px 2px !important; line-height: 1.1 !important;
+            padding: 3.3px 2px !important; line-height: 1.2 !important;
         }
+        /* اسم المستشفى: كامل + ملتف + خط +10% */
         .hospital-items-report .hospital-name-cell {
             font-weight: bold !important; text-align: right !important;
-            padding: 3px 5px !important; background: #e3f2fd !important;
-            font-size: 9.5px !important; white-space: nowrap !important;
-            overflow: hidden !important; text-overflow: ellipsis !important;
+            padding: 3.3px 5px !important; background: #e3f2fd !important;
+            font-size: 10.5px !important;
+            line-height: 1.2 !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
         }
+        /* الأرقام: خط -5% */
         .hospital-items-report .qty-cell-report {
-            font-weight: 900 !important; font-size: 22px !important;
-            padding: 3px 2px !important; text-align: center !important;
+            font-weight: 900 !important; font-size: 21px !important;
+            padding: 3.3px 2px !important; text-align: center !important;
+            line-height: 1.2 !important;
         }
         .hospital-items-report .total-label-cell {
             font-weight: 900 !important; text-align: right !important;
-            padding: 3px 5px !important; font-size: 9.5px !important;
-            background: #fff59d !important;
+            padding: 3.3px 5px !important; font-size: 10.5px !important;
+            background: #fff59d !important; line-height: 1.2 !important;
         }
         .hospital-items-report .total-qty-cell {
-            font-weight: 900 !important; font-size: 23px !important;
-            padding: 3px 2px !important; text-align: center !important;
+            font-weight: 900 !important; font-size: 22px !important;
+            padding: 3.3px 2px !important; text-align: center !important;
             color: #d32f2f !important; border: 1.5px solid #000 !important;
-            background: #fff59d !important;
+            background: #fff59d !important; line-height: 1.2 !important;
         }
 
         .password-input { width: 100%; padding: 12px; font-size: 18px; border: 2px solid #ccc; border-radius: 6px; letter-spacing: 4px; text-align: center; font-family: Arial; direction: ltr; }
@@ -1404,9 +1410,6 @@
         finally { document.body.removeChild(temp); }
     }
 
-    // ==============================================================
-    // كشف الفجوات — نظام طابور: رقم واحد في كل مرة
-    // ==============================================================
     function getMissingInvoiceNumbers() {
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         const acknowledged = JSON.parse(localStorage.getItem('fondant_acknowledged_gaps') || '[]');
@@ -1429,11 +1432,6 @@
     let _missingQueue = [];
     let _missingCallback = null;
 
-    /**
-     * بدء عرض التحذيرات المتسلسلة.
-     * @param {Function} onComplete - يُستدعى عند انتهاء المعالجة (سواء اعترف بكل الأرقام أو ضغط المستخدم "لا")
-     * @returns {boolean} - true إذا وُجدت فجوات (سيتم عرض المودال)، false إذا لا توجد
-     */
     function checkAndWarnMissingInvoices(onComplete) {
         const missing = getMissingInvoiceNumbers();
         if (!missing.length) {
@@ -1455,15 +1453,13 @@
             return;
         }
         const current = _missingQueue[0];
-        const remaining = _missingQueue.length;
-        const total = remaining;
-        document.getElementById('missingInvoicesCounter').innerText = `الرقم المفقود: ${remaining} من ${total} — المتبقي: ${remaining}`;
+        const total = _missingQueue.length;
+        document.getElementById('missingInvoicesCounter').innerText = `الرقم المفقود الحالي: ${current} — المتبقي: ${total}`;
         document.getElementById('missingInvoicesMessage').innerText = `رقم الفاتورة: ${current}\n\nهذا الرقم غير مسجل في السلسلة.\nماذا تريد أن تفعل بهذا الرقم تحديداً؟`;
         openModal('missingInvoicesModal');
     }
 
     function missingYes() {
-        // تجاهل هذا الرقم فقط (اعتماد التخطي المتعمد له)
         const current = _missingQueue[0];
         if (current !== undefined && current !== null) {
             const ack = JSON.parse(localStorage.getItem('fondant_acknowledged_gaps') || '[]');
@@ -1476,7 +1472,6 @@
     }
 
     function missingRegisterCancelled() {
-        // تسجيل هذا الرقم كفاتورة ملغية
         const current = _missingQueue[0];
         if (current !== undefined && current !== null) {
             const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
@@ -1496,7 +1491,6 @@
     }
 
     function missingNo() {
-        // إغلاق ومتابعة العمل — الأرقام ستبقى غير معالجة وتظهر مجدداً لاحقاً
         _missingQueue = [];
         closeModal('missingInvoicesModal');
         const cb = _missingCallback;
@@ -1504,9 +1498,6 @@
         if (cb) cb();
     }
 
-    // ==============================================================
-    // حفظ الفاتورة مع التحقق من التسلسل
-    // ==============================================================
     document.getElementById('saveInvoiceBtn').addEventListener('click', function() {
         const invNum = currentInvoiceNum;
         const expectedNext = getExpectedNextInvoiceNumber();
@@ -1810,12 +1801,8 @@
 
     document.getElementById('viewInvoicesBtn').addEventListener('click', () => {
         renderSavedInvoicesList();
-        // فتح المودال فوراً (بدون انتظار)
         openModal('savedInvoicesModal');
-        // عرض التحذيرات المتسلسلة (إن وُجدت) فوق المودال
-        setTimeout(() => {
-            checkAndWarnMissingInvoices();
-        }, 300);
+        setTimeout(() => { checkAndWarnMissingInvoices(); }, 300);
     });
 
     function cancelLastInvoice() {
@@ -2000,7 +1987,7 @@
     }
 
     // ================================================================
-    // ⭐ تقرير كميات أصناف المستشفيات — نسخة مضغوطة لصفحة A4 واحدة
+    // ⭐ تقرير كميات أصناف المستشفيات — اسم كامل + خط +10% + أرقام -5% + صفوف +10%
     // ================================================================
     const HOSPITAL_ITEMS_REPORT_ITEMS = ['Sweet Graham', 'Grape Leaves Lemon', 'Grape Leaves Roman', 'Mohalabiya', 'Saffron Cake', 'Brownies Cups', 'Tiramisu Cheesecake'];
     let lastHospitalItemsHTML = '', lastHospitalItemsFilename = '';
@@ -2040,7 +2027,6 @@
 
         const hospitals = Object.keys(report).sort();
 
-        // رؤوس الأعمدة بنسب دقيقة
         let headersHTML = `<th style="width:22%; background:#004494; padding:3px 2px;">المستشفى<br><span style="font-size:7px; font-weight:normal;">Hospital</span></th>`;
         HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
             headersHTML += `<th style="width:11.14%; padding:2px 1px; line-height:1.1; word-break:break-word; font-size:8px;">${it}</th>`;
@@ -2060,7 +2046,6 @@
             rowsHTML += `</tr>`;
         });
 
-        // صف الإجماليات
         rowsHTML += `<tr style="background:#fff59d;"><td class="total-label-cell">الإجمالي<br><span style="font-size:7px; font-weight:normal;">TOTAL</span></td>`;
         HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
             rowsHTML += `<td class="total-qty-cell">${colTotals[it]}</td>`;
@@ -2552,11 +2537,7 @@
     populateAllDefaultItems();
 
     setTimeout(() => customerInput.focus(), 200);
-
-    // ✅ عرض التحذيرات المتسلسلة عند فتح التطبيق
-    setTimeout(() => {
-        checkAndWarnMissingInvoices();
-    }, 1200);
+    setTimeout(() => { checkAndWarnMissingInvoices(); }, 1200);
 </script>
 
 </body>
