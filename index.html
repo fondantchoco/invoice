@@ -86,11 +86,12 @@
         .items-table td input { width: 100%; height: 100%; border: none; outline: none; background: transparent; font-size: 15px; font-weight: bold; text-align: center; color: #000; font-family: Arial, sans-serif; box-sizing: border-box; padding: 0; line-height: normal; vertical-align: middle; }
         .items-table td.prod-cell input { text-align: left; text-transform: capitalize; font-size: 22px !important; }
         #returnsRows td.prod-cell input { text-align: center !important; }
-        .items-table th:nth-child(1) { width: 60%; }
+        .items-table th:nth-child(1) { width: 55%; }
         .items-table th:nth-child(2) { width: 2.35cm; }
         .items-table th:nth-child(3) { width: 1.80cm; }
         .items-table th:nth-child(4) { width: 1.65cm; }
         .items-table th:nth-child(5) { width: 5%; }
+        .items-table th:nth-child(6) { width: 5%; }
         #invoiceRows .qty-cell input { font-size: 19px !important; }
         #returnsRows .qty-cell input { font-size: 20px !important; }
         .row-total { font-size: 15px !important; font-weight: 900 !important; color: #000; text-align: right !important; padding-right: 8px; }
@@ -183,87 +184,33 @@
         .pdf-mode .grand-total-value { font-size: 20.24px !important; }
         .pdf-mode #invoiceRows tr.row-active td, .pdf-mode #returnsRows tr.row-active td { background: #ffffff !important; }
 
-        /* =================================================================
-           أنماط تقرير كميات أصناف المستشفيات
-           - اسم المستشفى كامل (يلتف بدل القص)
-           - اسم المستشفى: +10% خط (10.5px)
-           - الأرقام: -5% خط (21px بدل 22px / 22px بدل 23px)
-           - ارتفاع الصفوف: +10% (padding 3.3px بدل 3px)
-           ================================================================= */
         .hospital-items-report { padding: 0; margin: 0; }
-        .hospital-items-report .statement-company-header {
-            padding-bottom: 4px !important;
-            margin-bottom: 6px !important;
-            border-bottom: 1.5px solid #000 !important;
-        }
-        .hospital-items-report .statement-company-header .sch-logo {
-            height: 35px !important; max-height: 35px !important; max-width: 35px !important;
-        }
-        .hospital-items-report .statement-company-header .sch-qr {
-            width: 35px !important; height: 35px !important;
-            max-width: 35px !important; max-height: 35px !important;
-        }
-        .hospital-items-report .statement-company-header .sch-right {
-            font-size: 8px !important; min-width: 90px !important; line-height: 1.15 !important;
-        }
-        .hospital-items-report .statement-company-header .sch-brand {
-            font-size: 11px !important; margin-top: 1px !important;
-        }
+        .hospital-items-report .statement-company-header { padding-bottom: 4px !important; margin-bottom: 6px !important; border-bottom: 1.5px solid #000 !important; }
+        .hospital-items-report .statement-company-header .sch-logo { height: 35px !important; max-height: 35px !important; max-width: 35px !important; }
+        .hospital-items-report .statement-company-header .sch-qr { width: 35px !important; height: 35px !important; max-width: 35px !important; max-height: 35px !important; }
+        .hospital-items-report .statement-company-header .sch-right { font-size: 8px !important; min-width: 90px !important; line-height: 1.15 !important; }
+        .hospital-items-report .statement-company-header .sch-brand { font-size: 11px !important; margin-top: 1px !important; }
         .hospital-items-report .statement-title { margin: 3px 0 5px !important; }
         .hospital-items-report .statement-title h2 { font-size: 13px !important; letter-spacing: 0.4px !important; }
         .hospital-items-report .statement-title .sub { font-size: 9.5px !important; margin-top: 1px !important; }
-        .hospital-items-report .statement-info {
-            font-size: 9px !important; padding: 4px 8px !important;
-            margin-bottom: 4px !important; gap: 5px !important;
-            border-radius: 4px !important;
+        .hospital-items-report .statement-info { font-size: 9px !important; padding: 4px 8px !important; margin-bottom: 4px !important; gap: 5px !important; border-radius: 4px !important; }
+        .hospital-items-report .report-notice { background: #fff3cd; border: 1px solid #ffc107; padding: 3px 8px; border-radius: 3px; margin-bottom: 4px; font-size: 9px; color: #856404; text-align: center; font-weight: bold; }
+        .hospital-items-report .statement-table { font-size: 9px !important; margin-bottom: 4px !important; table-layout: fixed !important; width: 100% !important; border-collapse: collapse !important; }
+        .hospital-items-report .statement-table th { padding: 3px 2px !important; font-size: 8px !important; line-height: 1.1 !important; }
+        .hospital-items-report .statement-table td { padding: 3.3px 2px !important; line-height: 1.2 !important; }
+        .hospital-items-report .hospital-name-cell { font-weight: bold !important; text-align: right !important; padding: 3.3px 5px !important; background: #e3f2fd !important; font-size: 10.5px !important; line-height: 1.2 !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word !important; overflow-wrap: break-word !important; }
+        .hospital-items-report .qty-cell-report { font-weight: 900 !important; font-size: 21px !important; padding: 3.3px 2px !important; text-align: center !important; line-height: 1.2 !important; }
+        .hospital-items-report .total-label-cell { font-weight: 900 !important; text-align: right !important; padding: 3.3px 5px !important; font-size: 10.5px !important; background: #fff59d !important; line-height: 1.2 !important; }
+        .hospital-items-report .total-qty-cell { font-weight: 900 !important; font-size: 22px !important; padding: 3.3px 2px !important; text-align: center !important; color: #d32f2f !important; border: 1.5px solid #000 !important; background: #fff59d !important; line-height: 1.2 !important; }
+
+        /* ⭐ زر نقل الصنف للمرتجعات */
+        .btn-move-to-return {
+            padding: 3px 5px; border-radius: 3px; font-size: 12px;
+            background: #ff9800; color: white; border: none;
+            cursor: pointer; width: 100%; font-weight: bold;
+            transition: 0.2s;
         }
-        .hospital-items-report .report-notice {
-            background: #fff3cd; border: 1px solid #ffc107;
-            padding: 3px 8px; border-radius: 3px;
-            margin-bottom: 4px; font-size: 9px;
-            color: #856404; text-align: center; font-weight: bold;
-        }
-        .hospital-items-report .statement-table {
-            font-size: 9px !important; margin-bottom: 4px !important;
-            table-layout: fixed !important; width: 100% !important;
-            border-collapse: collapse !important;
-        }
-        .hospital-items-report .statement-table th {
-            padding: 3px 2px !important;
-            font-size: 8px !important; line-height: 1.1 !important;
-        }
-        .hospital-items-report .statement-table td {
-            padding: 3.3px 2px !important; line-height: 1.2 !important;
-        }
-        /* اسم المستشفى: كامل + ملتف + خط +10% */
-        .hospital-items-report .hospital-name-cell {
-            font-weight: bold !important; text-align: right !important;
-            padding: 3.3px 5px !important; background: #e3f2fd !important;
-            font-size: 10.5px !important;
-            line-height: 1.2 !important;
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: clip !important;
-            word-break: break-word !important;
-            overflow-wrap: break-word !important;
-        }
-        /* الأرقام: خط -5% */
-        .hospital-items-report .qty-cell-report {
-            font-weight: 900 !important; font-size: 21px !important;
-            padding: 3.3px 2px !important; text-align: center !important;
-            line-height: 1.2 !important;
-        }
-        .hospital-items-report .total-label-cell {
-            font-weight: 900 !important; text-align: right !important;
-            padding: 3.3px 5px !important; font-size: 10.5px !important;
-            background: #fff59d !important; line-height: 1.2 !important;
-        }
-        .hospital-items-report .total-qty-cell {
-            font-weight: 900 !important; font-size: 22px !important;
-            padding: 3.3px 2px !important; text-align: center !important;
-            color: #d32f2f !important; border: 1.5px solid #000 !important;
-            background: #fff59d !important; line-height: 1.2 !important;
-        }
+        .btn-move-to-return:hover { background: #e68900; }
 
         .password-input { width: 100%; padding: 12px; font-size: 18px; border: 2px solid #ccc; border-radius: 6px; letter-spacing: 4px; text-align: center; font-family: Arial; direction: ltr; }
         .password-input:focus { outline: none; border-color: #17a2b8; }
@@ -323,6 +270,7 @@
         <button class="btn btn-success-dark" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('dailySalesBtn').click();">💰 تقرير المبيعات اليومية</button>
         <button class="btn btn-info" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('hospitalItemsBtn').click();">🏥 كميات أصناف المستشفيات</button>
         <button class="btn btn-dark" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('returnsReportBtn').click();">🔄 تقرير المرتجعات (مستشفيات)</button>
+        <button class="btn btn-secondary" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); generateEmptyTablePDF();" style="background:#00695c;">📋 جدول فارغ للتعبئة (PDF)</button>
         <hr style="border: none; border-top: 1px solid #ccc; margin: 3px 0;">
         <button class="btn btn-info" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageItemsBtn').click();">⚙️ إدارة أصناف المستشفيات</button>
         <button class="btn btn-info" onclick="toggleMobileSidebar(); toggleReportsSubmenu(false); document.getElementById('manageExternalItemsBtn').click();">⚙️ إدارة الأصناف الخارجية</button>
@@ -348,6 +296,7 @@
     <button id="dailySalesBtn">تقرير المبيعات اليومية</button>
     <button id="hospitalItemsBtn">كميات أصناف المستشفيات</button>
     <button id="returnsReportBtn">تقرير المرتجعات</button>
+    <button id="emptyTableBtn">جدول فارغ</button>
     <button id="manageItemsBtn">أصناف مستشفيات</button>
     <button id="manageExternalItemsBtn">أصناف خارجية</button>
     <button id="manageHospitalNamesBtn">أسماء مستشفيات</button>
@@ -420,6 +369,7 @@
                             <th>Unit Price<br>سعر الوحدة</th>
                             <th>Qty الكمية</th>
                             <th>Total المبلغ</th>
+                            <th class="no-print" title="نقل للمرتجعات">↩️</th>
                             <th class="no-print"></th>
                         </tr>
                     </thead>
@@ -524,7 +474,7 @@
     </div>
 </div>
 
-<!-- Modal Skip Warning (لحظة الحفظ) -->
+<!-- Modal Skip Warning -->
 <div class="modal-overlay" id="skipWarningModal">
     <div class="modal-content" style="max-width: 520px;">
         <div class="modal-header" style="border-bottom: 2px solid #ffc107;">
@@ -541,7 +491,7 @@
     </div>
 </div>
 
-<!-- Modal Missing Invoices (كشف الفجوات — رقم واحد في كل مرة) -->
+<!-- Modal Missing Invoices -->
 <div class="modal-overlay" id="missingInvoicesModal">
     <div class="modal-content" style="max-width: 580px;">
         <div class="modal-header" style="border-bottom: 2px solid #dc3545;">
@@ -1173,7 +1123,8 @@
             <td><input type="number" class="price-input" value="${prodPrice}" step="0.001"></td>
             <td class="qty-cell"><input type="number" class="qty-input" value="${prodQty}" min="1" placeholder=""></td>
             <td class="row-total">${prodTotal}</td>
-            <td class="no-print"><button class="btn-danger" style="padding:4px 8px; border-radius:3px; font-size:12px;" onclick="document.getElementById('row-${rowId}').remove(); updateGrandTotal();">✖</button></td>
+            <td class="no-print"><button class="btn-move-to-return" title="نقل إلى المرتجعات" onclick="moveToReturns('${rowId}')">↩️</button></td>
+            <td class="no-print"><button class="btn-danger" style="padding:3px 5px; border-radius:3px; font-size:12px; width:100%;" onclick="document.getElementById('row-${rowId}').remove(); updateGrandTotal();">✖</button></td>
         `;
         invoiceRows.appendChild(tr);
         const prodInput = tr.querySelector('.prod-input');
@@ -1232,7 +1183,7 @@
                 <div class="autocomplete-list prod-list"></div>
             </td>
             <td class="qty-cell"><input type="number" class="qty-input" value="${prodQty}" min="1" placeholder=""></td>
-            <td class="no-print"><button class="btn-danger" style="padding:4px 8px; border-radius:3px; font-size:12px;" onclick="document.getElementById('return-row-${rowId}').remove();">✖</button></td>
+            <td class="no-print"><button class="btn-danger" style="padding:3px 5px; border-radius:3px; font-size:12px; width:100%;" onclick="document.getElementById('return-row-${rowId}').remove();">✖</button></td>
         `;
         returnsRows.appendChild(tr);
         const prodInput = tr.querySelector('.prod-input');
@@ -1275,6 +1226,85 @@
             if (e.key === 'ArrowDown') { if (idx < rows.length - 1) rows[idx+1].querySelector('.qty-input').focus(); else { createReturnRowElement(); const nr = Array.from(document.querySelectorAll('#returnsRows tr')); nr[nr.length-1].querySelector('.qty-input').focus(); } }
             else { if (idx > 0) rows[idx-1].querySelector('.qty-input').focus(); }
         });
+    }
+
+    // ⭐ إضافة صنف / زيادة كمية صنف في المرتجعات (تُستدعى من زر النقل)
+    function addToReturnsRows(name, qty) {
+        const existingRow = Array.from(document.querySelectorAll('#returnsRows tr')).find(row => {
+            return row.querySelector('.prod-input').value.trim().toLowerCase() === name.trim().toLowerCase();
+        });
+        if (existingRow) {
+            const qtyInput = existingRow.querySelector('.qty-input');
+            const currentQty = parseFloat(qtyInput.value) || 0;
+            qtyInput.value = currentQty + qty;
+        } else {
+            createReturnRowElement({ name: name, qty: qty });
+        }
+    }
+
+    // ⭐ نقل صنف من الفاتورة إلى المرتجعات
+    function moveToReturns(rowId) {
+        const tr = document.getElementById('row-' + rowId);
+        if (!tr) return;
+        const prodInput = tr.querySelector('.prod-input');
+        const qtyInput = tr.querySelector('.qty-input');
+        const prodName = prodInput.value.trim();
+        const qtyStr = qtyInput.value.trim();
+        const currentQty = parseFloat(qtyStr);
+
+        if (!prodName) { alert('يرجى اختيار الصنف أولاً'); prodInput.focus(); return; }
+        if (qtyStr === '' || isNaN(currentQty) || currentQty <= 0) {
+            alert('يرجى إدخال كمية للصنف أولاً قبل نقله للمرتجعات');
+            qtyInput.focus();
+            return;
+        }
+
+        const matchedItem = getActiveItemsDB().find(i => i.name.toLowerCase() === prodName.toLowerCase());
+        if (!matchedItem) { alert(`⚠️ الصنف "${prodName}" غير موجود في قائمة الأصناف المعتمدة!`); return; }
+
+        let returnQty = currentQty;
+        let wholeRow = true;
+
+        if (currentQty === 1) {
+            if (!confirm(`هل تريد نقل الصنف "${prodName}" بكمية (1) إلى المرتجعات؟`)) return;
+            returnQty = 1;
+            wholeRow = true;
+        } else {
+            const choice = confirm(
+                `الصنف: ${prodName}\nالكمية الحالية في الفاتورة: ${currentQty}\n\n` +
+                `اضغط "موافق" لإرجاع كامل الكمية (${currentQty})\n` +
+                `اضغط "إلغاء" لإرجاع جزء فقط (يُخصم من الفاتورة)`
+            );
+            if (choice) {
+                returnQty = currentQty;
+                wholeRow = true;
+            } else {
+                const input = prompt(
+                    `الصنف: ${prodName}\nالكمية الحالية: ${currentQty}\n\n` +
+                    `أدخل الكمية المطلوب إرجاعها (بين 1 و ${currentQty - 1}):`,
+                    '1'
+                );
+                if (input === null) return;
+                const partQty = parseFloat(input);
+                if (isNaN(partQty) || partQty <= 0 || partQty >= currentQty) {
+                    alert(`⚠️ يجب أن تكون الكمية المُرجعة عدداً بين 1 و ${currentQty - 1}.\n(لإرجاع الكمية كاملة، اختر "موافق" في الخطوة السابقة)`);
+                    return;
+                }
+                returnQty = partQty;
+                wholeRow = false;
+            }
+        }
+
+        addToReturnsRows(prodName, returnQty);
+
+        if (wholeRow) {
+            tr.remove();
+        } else {
+            const remainingQty = currentQty - returnQty;
+            qtyInput.value = remainingQty;
+            calculateRowTotal(tr);
+        }
+        updateGrandTotal();
     }
 
     function calculateRowTotal(row) {
@@ -1378,9 +1408,11 @@
         await exportHTMLToPDF(html, `Logs_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 
-    async function exportHTMLToPDF(html, filename) {
+    async function exportHTMLToPDF(html, filename, isLandscape = false, customPadding = null) {
+        const pageWidth = isLandscape ? '297mm' : '210mm';
+        const padding = customPadding || (isLandscape ? '3mm' : '15mm');
         const temp = document.createElement('div');
-        temp.style.cssText = `position:fixed; left:-10000px; top:0; width:210mm; background:#fff; padding:15mm; font-family:'Segoe UI',Arial,sans-serif; direction:rtl; box-sizing:border-box;`;
+        temp.style.cssText = `position:fixed; left:-10000px; top:0; width:${pageWidth}; background:#fff; padding:${padding}; font-family:'Segoe UI',Arial,sans-serif; direction:rtl; box-sizing:border-box;`;
         temp.innerHTML = html;
         document.body.appendChild(temp);
         try {
@@ -1392,12 +1424,14 @@
             await new Promise(r => setTimeout(r, 150));
             const canvas = await html2canvas(temp, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdf = new jsPDF(isLandscape ? 'l' : 'p', 'mm', 'a4');
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const pageW = 210, pageH = 297;
+            const pageW = isLandscape ? 297 : 210;
+            const pageH = isLandscape ? 210 : 297;
             const imgHeight = (canvas.height * pageW) / canvas.width;
-            if (imgHeight <= pageH) pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgHeight);
-            else {
+            if (imgHeight <= pageH) {
+                pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgHeight);
+            } else {
                 let rem = imgHeight, pos = 0;
                 while (rem > 0) {
                     pdf.addImage(imgData, 'JPEG', 0, pos, pageW, imgHeight);
@@ -1406,9 +1440,86 @@
                 }
             }
             pdf.save(filename);
-        } catch(err) { alert('حدث خطأ أثناء التصدير.'); }
-        finally { document.body.removeChild(temp); }
+        } catch(err) {
+            alert('حدث خطأ أثناء التصدير: ' + err.message);
+        } finally {
+            document.body.removeChild(temp);
+        }
     }
+
+    // ⭐ جدول فارغ — يحافظ على ترتيب المستشفيات في القائمة المنسدلة + كل الأصناف
+    async function generateEmptyTablePDF() {
+        try {
+            // بدون .sort() — نحافظ على ترتيب القائمة المنسدلة
+            const hospitals = [...new Set(hospitalCustomersDB.map(h => normalizeHospitalName(h)))].filter(h => h);
+            const allItems = hospitalItemsDB.map(i => i.name);
+
+            if (!hospitals.length) { alert('لا توجد مستشفيات مسجلة في النظام'); return; }
+            if (!allItems.length) { alert('لا توجد أصناف مسجلة في النظام'); return; }
+
+            const itemCount = allItems.length;
+            const hospitalCount = hospitals.length;
+
+            const usableWidthMm = 293;
+            const itemColMm = 26;
+            const hospitalColMm = (usableWidthMm - itemColMm) / hospitalCount;
+
+            const availRowHeightMm = 175 / itemCount;
+            const rowHeight = Math.min(availRowHeightMm, 7).toFixed(2) + 'mm';
+
+            let itemFontSize = '8px';
+            let itemPadding = '1px 3px';
+            let hospitalFontSize = '6.5px';
+            let hospitalPadding = '2px 0.5px';
+            let hospitalLineHeight = '1.1';
+            if (itemCount > 30) { itemFontSize = '7px'; itemPadding = '0.5px 2px'; }
+            if (itemCount > 40) { itemFontSize = '6px'; itemPadding = '0px 1.5px'; }
+            if (hospitalCount > 12) { hospitalFontSize = '5.8px'; hospitalPadding = '1.5px 0.3px'; hospitalLineHeight = '1.05'; }
+            if (hospitalCount > 18) { hospitalFontSize = '5px'; hospitalPadding = '1px 0.2px'; hospitalLineHeight = '1'; }
+
+            let headerHTML = `<th style="width:${itemColMm}mm; background:#003060; color:#fff; font-size:8.5px; padding:3px 2px; border:1px solid #000; text-align:center; vertical-align:middle; font-weight:900;">الصنف<br><span style="font-size:6.5px; font-weight:normal;">Item</span></th>`;
+            hospitals.forEach(h => {
+                headerHTML += `<th style="width:${hospitalColMm.toFixed(2)}mm; background:#004494; color:#fff; font-size:${hospitalFontSize}; padding:${hospitalPadding}; border:1px solid #000; text-align:center; vertical-align:middle; font-weight:bold; word-break:break-word; overflow-wrap:break-word; line-height:${hospitalLineHeight};">${h}</th>`;
+            });
+
+            let bodyHTML = '';
+            allItems.forEach((item, idx) => {
+                bodyHTML += `<tr><td style="background:#e3f2fd; color:#000; font-weight:900; font-size:${itemFontSize}; text-align:right; padding:${itemPadding}; border:1px solid #000; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${idx + 1}. ${item}</td>`;
+                hospitals.forEach(() => {
+                    bodyHTML += `<td style="height:${rowHeight}; background:#fff; border:1px solid #000;"></td>`;
+                });
+                bodyHTML += `</tr>`;
+            });
+
+            const html = `
+                <style>
+                    .empty-tbl-report { width: 100%; border-collapse: collapse; table-layout: fixed; direction: ltr; }
+                    .empty-tbl-report th, .empty-tbl-report td { border: 1px solid #000 !important; }
+                </style>
+                <div style="direction:rtl; width:100%; padding:0; margin:0; font-family:'Segoe UI',Arial,sans-serif;">
+                    <div style="text-align:center; font-size:12px; font-weight:900; color:#000; margin-bottom:2px; padding-bottom:2px; border-bottom:1.5px solid #000;">جدول التعبئة اليدوية — كميات الأصناف × المستشفيات</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:8.5px; font-weight:bold; color:#222; margin-bottom:3px; padding:1px 2px; flex-wrap:wrap; gap:6px;">
+                        <span>التاريخ: ____ / ____ / __________</span>
+                        <span>اليوم: ________________</span>
+                        <span>عدد الأصناف: ${itemCount} | عدد المستشفيات: ${hospitalCount}</span>
+                    </div>
+                    <div style="direction:ltr;">
+                        <table class="empty-tbl-report">
+                            <thead><tr>${headerHTML}</tr></thead>
+                            <tbody>${bodyHTML}</tbody>
+                        </table>
+                    </div>
+                    <div style="text-align:center; font-size:7.5px; color:#555; margin-top:2px; padding-top:1px; border-top:1px solid #999; font-weight:bold;">FONDANT CHOCO — ${getFormattedDate(new Date())}</div>
+                </div>
+            `;
+
+            await exportHTMLToPDF(html, `Empty_Table_AllItems_${new Date().toISOString().split('T')[0]}.pdf`, true, '2mm');
+            addLogEntry(`تم تصدير جدول فارغ (${itemCount} صنف × ${hospitalCount} مستشفى)`, false);
+        } catch (err) {
+            alert('حدث خطأ: ' + err.message);
+        }
+    }
+    document.getElementById('emptyTableBtn').addEventListener('click', generateEmptyTablePDF);
 
     function getMissingInvoiceNumbers() {
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
@@ -1434,10 +1545,7 @@
 
     function checkAndWarnMissingInvoices(onComplete) {
         const missing = getMissingInvoiceNumbers();
-        if (!missing.length) {
-            if (onComplete) onComplete();
-            return false;
-        }
+        if (!missing.length) { if (onComplete) onComplete(); return false; }
         _missingQueue = missing.slice();
         _missingCallback = onComplete || null;
         showNextMissingWarning();
@@ -1447,14 +1555,13 @@
     function showNextMissingWarning() {
         if (_missingQueue.length === 0) {
             closeModal('missingInvoicesModal');
-            const cb = _missingCallback;
-            _missingCallback = null;
+            const cb = _missingCallback; _missingCallback = null;
             if (cb) cb();
             return;
         }
         const current = _missingQueue[0];
-        const total = _missingQueue.length;
-        document.getElementById('missingInvoicesCounter').innerText = `الرقم المفقود الحالي: ${current} — المتبقي: ${total}`;
+        const remaining = _missingQueue.length;
+        document.getElementById('missingInvoicesCounter').innerText = `الرقم المفقود الحالي: ${current} — المتبقي: ${remaining}`;
         document.getElementById('missingInvoicesMessage').innerText = `رقم الفاتورة: ${current}\n\nهذا الرقم غير مسجل في السلسلة.\nماذا تريد أن تفعل بهذا الرقم تحديداً؟`;
         openModal('missingInvoicesModal');
     }
@@ -1493,8 +1600,7 @@
     function missingNo() {
         _missingQueue = [];
         closeModal('missingInvoicesModal');
-        const cb = _missingCallback;
-        _missingCallback = null;
+        const cb = _missingCallback; _missingCallback = null;
         if (cb) cb();
     }
 
@@ -1986,9 +2092,6 @@
         await exportHTMLToPDF(lastDailySummaryHTML, lastDailySummaryFilename);
     }
 
-    // ================================================================
-    // ⭐ تقرير كميات أصناف المستشفيات — اسم كامل + خط +10% + أرقام -5% + صفوف +10%
-    // ================================================================
     const HOSPITAL_ITEMS_REPORT_ITEMS = ['Sweet Graham', 'Grape Leaves Lemon', 'Grape Leaves Roman', 'Mohalabiya', 'Saffron Cake', 'Brownies Cups', 'Tiramisu Cheesecake'];
     let lastHospitalItemsHTML = '', lastHospitalItemsFilename = '';
 
