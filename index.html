@@ -811,6 +811,46 @@
     }
     document.getElementById('passwordModalInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); submitPasswordModal(); } });
 
+    // ═══════════════════════════════════════════════════════════════
+    // 🆕 الترجمة العربية لأسماء المستشفيات
+    // ═══════════════════════════════════════════════════════════════
+    const ARABIC_HOSPITAL_NAMES = {
+        'Al-Adan Hospital': 'مستشفى العدان',
+        'Al-Jahra Hospital': 'مستشفى الجهراء',
+        'Al-Razi Hospital': 'مستشفى الرازي',
+        'Hya Elhabib Hospital': 'مستشفى حياة الحبيب',
+        'Hisham Al-Sager Hospital': 'مستشفى هشام الصقر',
+        'Hamed Al-Eissa Hospital': 'مستشفى حامد العيسى',
+        'NBK Hospital': 'مستشفى NBK',
+        'Physiology Hospital': 'مستشفى الفسيولوجي',
+        'Higher Institute of Energy - HIE': 'المعهد العالي للطاقة',
+        'College of Health Sciences - Boys': 'كلية العلوم الصحية - بنين',
+        'College of Technological Studies - Girls': 'كلية الدراسات التكنولوجية - بنات',
+        'New Al-Razi Hospital': 'مستشفى الرازي الجديد',
+        'Addiction Treatment Center - ATC': 'مركز علاج الإدمان',
+        'Ministry of Health': 'وزارة الصحة',
+        'Al Omooma Hospital': 'مستشفى الأمومة'
+    };
+    function getArabicHospitalName(name) {
+        return ARABIC_HOSPITAL_NAMES[name] || name;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🆕 الترجمة العربية لأصناف تقرير كميات المستشفيات
+    // ═══════════════════════════════════════════════════════════════
+    const ARABIC_HOSPITAL_REPORT_ITEMS = {
+        'Sweet Graham': 'سويت جراهام',
+        'Grape Leaves Lemon': 'ورق عنب ليمون',
+        'Grape Leaves Roman': 'ورق عنب رمان',
+        'Mohalabiya': 'مهلبية',
+        'Saffron Cake': 'كيك زعفران',
+        'Brownies Cups': 'براونيز كابس',
+        'Tiramisu Cheesecake': 'تيراميسو تشيز كيك'
+    };
+    function getArabicItemName(name) {
+        return ARABIC_HOSPITAL_REPORT_ITEMS[name] || name;
+    }
+
     const HOSPITAL_NAME_ALIASES = {
         'ADAN': 'Al-Adan Hospital', 'JAHRA': 'Al-Jahra Hospital', 'AL RAZI': 'Al-Razi Hospital',
         'HYA': 'Hya Elhabib Hospital', 'HICHAM': 'Hisham Al-Sager Hospital', 'HICHAAM': 'Hisham Al-Sager Hospital',
@@ -865,7 +905,6 @@
         addLogEntry("تم تصدير نسخة احتياطية", false); alert("تم تحميل النسخة الاحتياطية بنجاح!");
     }
 
-    // ✅ استيراد النسخة الاحتياطية + مزامنة سحابية للفواتير
     async function importBackup(event) {
         const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
@@ -930,14 +969,41 @@
     function loadExternalCustomersMeta() { const stored = localStorage.getItem('fondant_external_customers_meta'); if (stored) { try { const arr = JSON.parse(stored); if (Array.isArray(arr)) return arr; } catch(e){} } return []; }
     let externalCustomersMeta = loadExternalCustomersMeta();
 
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ الأصناف الافتراضية (KINDER CHOCOLATE و VIP CHOCOLATE محذوفان)
+    //    استُبدلا بـ Nutella Kinder و Delice Kinder في موقعهما بالترتيب
+    // ═══════════════════════════════════════════════════════════════
     const defaultItemsDB = [
-        { name: "SWEET GRAHAM", price: 0.600 }, { name: "HALLOUM CROLL SANDWICH", price: 0.500 }, { name: "TURKEY CROLL SANDWICH", price: 0.500 },
-        { name: "CHICKEN CROLL SANDWICH", price: 0.500 }, { name: "MIX FRIED SANDWICH", price: 0.500 }, { name: "MOHALABIYA", price: 0.500 },
-        { name: "FETA SANDWICH", price: 0.500 }, { name: "HALLOUM BROWN SANDWICH", price: 0.500 }, { name: "TURKISH BROWN SANDWICH WITH SESAME", price: 0.500 },
-        { name: "BROWN CHICKEN SANDWICH WITH SESAME", price: 0.500 }, { name: "HALLOUM SANDWICH", price: 0.500 }, { name: "TURKEY SANDWICH", price: 0.500 },
-        { name: "CHICKEN SANDWICH", price: 0.500 }, { name: "CHICKEN SAJ", price: 0.500 }, { name: "HALLOUM SAJ", price: 0.500 },
-        { name: "GRAPE LEAVES LEMON", price: 0.450 }, { name: "GRAPE LEAVES ROMAN", price: 0.450 }, { name: "BROWNIES CUPS", price: 0.500 }, 
-        { name: "TIRAMISU CHEESECAKE", price: 0.450 },{ name: "SAFFRON CAKE", price: 0.500 }, { name: "CHOCOLATE CHEESECAKE", price: 0.450 }, { name: "STRAWBERRY CHEESECAKE", price: 0.450 }, { name: "CHOCOLATE CHEESECAKE", price: 0.450 }, { name: "TIRAMISU CHEESECAKE", price: 0.500 }, { name: "CHOCOLATE BOX", price: 3.500 }, { name: "NUTTELA KINDER", price: 3.500 }, { name: "DOLCY kINDER", price: 3.500 }, { name: "Crystal Baby", price: 8.000 }, { name: "Regular Crystal", price: 8.000 }, { name: "wood Baby", price: 11.000 }
+        // ── باقي الأصناف (بترتيبها الأصلي - بدون تغيير) ──
+        { name: "SWEET GRAHAM", price: 0.600 },
+        { name: "HALLOUM CROLL SANDWICH", price: 0.500 },
+        { name: "TURKEY CROLL SANDWICH", price: 0.500 },
+        { name: "CHICKEN CROLL SANDWICH", price: 0.500 },
+        { name: "MIX FRIED SANDWICH", price: 0.500 },
+        { name: "MOHALABIYA", price: 0.500 },
+        { name: "FETA SANDWICH", price: 0.500 },
+        { name: "HALLOUM BROWN SANDWICH", price: 0.500 },
+        { name: "TURKISH BROWN SANDWICH WITH SESAME", price: 0.500 },
+        { name: "BROWN CHICKEN SANDWICH WITH SESAME", price: 0.500 },
+        { name: "HALLOUM SANDWICH", price: 0.500 },
+        { name: "TURKEY SANDWICH", price: 0.500 },
+        { name: "CHICKEN SANDWICH", price: 0.500 },
+        { name: "CHICKEN SAJ", price: 0.500 },
+        { name: "HALLOUM SAJ", price: 0.500 },
+        { name: "GRAPE LEAVES LEMON", price: 0.450 },
+        { name: "GRAPE LEAVES ROMAN", price: 0.450 },
+        // ── الأصناف المرتبة حسب الطلب (في النهاية) ──
+        { name: "Brownies Cups", price: 0.500 },
+        { name: "Saffron Cake", price: 0.500 },
+        { name: "Tiramisu Cheesecake", price: 0.450 },
+        { name: "Chocolate Box", price: 3.500 },
+        { name: "Strawberry Cheesecake", price: 0.450 },
+        { name: "Chocolate Cheesecake", price: 0.450 },
+        { name: "Nutella Kinder", price: 3.500 },
+        { name: "Delice Kinder", price: 3.500 },
+        { name: "Crystal Baby", price: 8.000 },
+        { name: "Regular Crystal", price: 8.000 },
+        { name: "Wood Baby", price: 11.000 }
     ];
     const defaultExternalItemsDB = [
         { name: "Kinder Croll - كرول كندر", price: 2.000 }, { name: "Mini Mix Pies - فطاير ميني ميكس", price: 5.500 }, { name: "Belgian Chocolate - شوكولاتة بلجيكية", price: 6.750 },
@@ -964,14 +1030,106 @@
             const isCB = n => /^crystal\s+baby$/i.test(n), isRC = n => /^regular\s+crystal$/i.test(n), isWB = n => /^wood\s+baby$/i.test(n);
             const cb = items.find(i => isCB((i.name || '').trim())), rc = items.find(i => isRC((i.name || '').trim())), wb = items.find(i => isWB((i.name || '').trim()));
             items = items.filter(i => { const n = (i.name || '').trim(); return !(isCB(n) || isRC(n) || isWB(n)); });
-            const fcb = cb || { name: 'Crystal Baby', price: 8.000 }, frc = rc || { name: 'Regular Crystal', price: 8.000 }, fwb = wb || { name: 'wood Baby', price: 11.000 };
+            const fcb = cb || { name: 'Crystal Baby', price: 8.000 }, frc = rc || { name: 'Regular Crystal', price: 8.000 }, fwb = wb || { name: 'Wood Baby', price: 11.000 };
             if (!cb) addedCount++; if (!rc) addedCount++; if (!wb) addedCount++;
-            fcb.name = 'Crystal Baby'; frc.name = 'Regular Crystal'; fwb.name = 'wood Baby';
+            fcb.name = 'Crystal Baby'; frc.name = 'Regular Crystal'; fwb.name = 'Wood Baby';
             items.push(fcb, frc, fwb); localStorage.setItem('fondant_items', JSON.stringify(items));
         } catch(e){}
         return { added: addedCount, renamed: renamedCount };
     }
-    migrateItemNames(); migrateAddNewItems();
+
+    // 🆕 حذف KINDER CHOCOLATE و VIP CHOCOLATE من الأصناف المحفوظة
+    function migrateRemoveOldChocolates() {
+        const stored = localStorage.getItem('fondant_items');
+        if (!stored) return { removed: 0 };
+        try {
+            let items = JSON.parse(stored);
+            if (!Array.isArray(items)) return { removed: 0 };
+            const toRemove = ['kinder chocolate', 'vip chocolate'];
+            const before = items.length;
+            items = items.filter(it => !toRemove.includes((it.name || '').trim().toLowerCase()));
+            const removed = before - items.length;
+            if (removed > 0) {
+                localStorage.setItem('fondant_items', JSON.stringify(items));
+                console.log(`✅ تم حذف ${removed} صنف قديم (KINDER CHOCOLATE / VIP CHOCOLATE)`);
+            }
+            return { removed };
+        } catch(e) { console.warn('⚠️ خطأ في حذف الأصناف القديمة:', e); return { removed: 0 }; }
+    }
+
+    // 🆕 إعادة ترتيب الأصناف المحفوظة حسب الترتيب الجديد
+    function migrateReorderHospitalItems() {
+        const stored = localStorage.getItem('fondant_items');
+        if (!stored) return;
+        try {
+            let items = JSON.parse(stored);
+            if (!Array.isArray(items) || !items.length) return;
+
+            const seen = new Set();
+            items = items.filter(it => {
+                const key = (it.name || '').trim().toLowerCase();
+                if (!key) return false;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            const reorderList = [
+                'brownies cups',
+                'saffron cake',
+                'tiramisu cheesecake',
+                'chocolate box',
+                'strawberry cheesecake',
+                'chocolate cheesecake',
+                'nutella kinder',
+                'delice kinder',
+                'crystal baby',
+                'regular crystal',
+                'wood baby'
+            ];
+
+            const notInList = items.filter(it => !reorderList.includes((it.name || '').trim().toLowerCase()));
+            const inListMap = new Map();
+            items.forEach(it => {
+                const key = (it.name || '').trim().toLowerCase();
+                if (reorderList.includes(key)) inListMap.set(key, it);
+            });
+
+            const reordered = [...notInList];
+            reorderList.forEach(key => {
+                if (inListMap.has(key)) {
+                    reordered.push(inListMap.get(key));
+                } else {
+                    const defaults = {
+                        'brownies cups': { name: 'Brownies Cups', price: 0.500 },
+                        'saffron cake': { name: 'Saffron Cake', price: 0.500 },
+                        'tiramisu cheesecake': { name: 'Tiramisu Cheesecake', price: 0.450 },
+                        'chocolate box': { name: 'Chocolate Box', price: 3.500 },
+                        'strawberry cheesecake': { name: 'Strawberry Cheesecake', price: 0.450 },
+                        'chocolate cheesecake': { name: 'Chocolate Cheesecake', price: 0.450 },
+                        'nutella kinder': { name: 'Nutella Kinder', price: 3.500 },
+                        'delice kinder': { name: 'Delice Kinder', price: 3.500 },
+                        'crystal baby': { name: 'Crystal Baby', price: 8.000 },
+                        'regular crystal': { name: 'Regular Crystal', price: 8.000 },
+                        'wood baby': { name: 'Wood Baby', price: 11.000 }
+                    };
+                    if (defaults[key]) reordered.push(defaults[key]);
+                }
+            });
+
+            const before = JSON.stringify(items.map(i => i.name));
+            const after = JSON.stringify(reordered.map(i => i.name));
+            if (before !== after) {
+                localStorage.setItem('fondant_items', JSON.stringify(reordered));
+                console.log('✅ تم إعادة ترتيب الأصناف في الفاتورة');
+            }
+        } catch(e) { console.warn('⚠️ خطأ في إعادة الترتيب:', e); }
+    }
+
+    migrateItemNames();
+    migrateAddNewItems();
+    migrateRemoveOldChocolates();
+    migrateReorderHospitalItems();
 
     function loadHospitalItemsDB() { const s = localStorage.getItem('fondant_items'); return s ? JSON.parse(s) : defaultItemsDB; }
     function loadExternalItemsDB() { const s = localStorage.getItem('fondant_external_items'); return s ? JSON.parse(s) : defaultExternalItemsDB; }
@@ -996,7 +1154,6 @@
         const y = dateObj.getFullYear(), m = String(dateObj.getMonth()+1).padStart(2,'0'), day = String(dateObj.getDate()).padStart(2,'0');
         return `${day}-${m}-${y}`;
     }
-    // ✅ التعديل: تاريخ الفاتورة = تاريخ اليوم
     function getDefaultInvoiceDate() { return getTodayDateInputString(); }
     function getTodayDateInputString() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -1288,7 +1445,6 @@
         localStorage.setItem('fondant_logs', JSON.stringify(logs));
     }
 
-    // ✅ دالة عرض السجل (مستقلة قابلة للاستدعاء)
     function renderLogsList() {
         const tbody = document.getElementById('logsList');
         const logs = JSON.parse(localStorage.getItem('fondant_logs') || '[]');
@@ -1840,12 +1996,40 @@
             (inv.returns || []).forEach(it => { const itemName = (it.name || '').trim().toLowerCase(); const matched = HOSPITAL_ITEMS_REPORT_ITEMS.find(t => t.toLowerCase() === itemName); if (matched) report[hosp][matched] += parseFloat(it.qty) || 0; });
         });
         const hospitals = Object.keys(report).sort();
-        let headersHTML = `<th style="width:22%; background:#004494; padding:3px 2px;">المستشفى<br><span style="font-size:7px; font-weight:normal;">Hospital</span></th>`;
-        HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => { headersHTML += `<th style="width:11.14%; padding:2px 1px; line-height:1.1; word-break:break-word; font-size:8px;">${it}</th>`; });
+
+        let headersHTML = `<th style="width:22%; background:#004494; padding:4px 2px; color:#fff; line-height:1.2;">
+            <div style="font-size:10px; font-weight:900;">المستشفى</div>
+            <div style="font-size:7.5px; font-weight:normal; margin-top:2px;">Hospital</div>
+        </th>`;
+        HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
+            const ar = getArabicItemName(it);
+            headersHTML += `<th style="width:11.14%; padding:3px 1px; line-height:1.15; word-break:break-word;">
+                <div style="font-size:9px; font-weight:900; color:#fff;">${ar}</div>
+                <div style="font-size:6.5px; font-weight:normal; color:#cfe2f3; margin-top:2px; letter-spacing:0;">${it}</div>
+            </th>`;
+        });
+
         let rowsHTML = ''; const colTotals = {}; HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => colTotals[it] = 0);
-        hospitals.forEach(hosp => { rowsHTML += `<tr><td class="hospital-name-cell">${hosp}</td>`; HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => { const qty = report[hosp][it]; colTotals[it] += qty; rowsHTML += `<td class="qty-cell-report" style="color:${qty > 0 ? '#d32f2f' : '#bbb'};">${qty > 0 ? qty : '—'}</td>`; }); rowsHTML += `</tr>`; });
-        rowsHTML += `<tr style="background:#fff59d;"><td class="total-label-cell">الإجمالي<br><span style="font-size:7px; font-weight:normal;">TOTAL</span></td>`;
-        HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => { rowsHTML += `<td class="total-qty-cell">${colTotals[it]}</td>`; }); rowsHTML += `</tr>`;
+        hospitals.forEach(hosp => {
+            const arHosp = getArabicHospitalName(hosp);
+            rowsHTML += `<tr><td class="hospital-name-cell">
+                <div style="font-size:11px; font-weight:900; color:#000; line-height:1.15;">${arHosp}</div>
+                <div style="font-size:7.5px; font-weight:normal; color:#666; line-height:1.15; margin-top:1px;">${hosp}</div>
+            </td>`;
+            HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
+                const qty = report[hosp][it]; colTotals[it] += qty;
+                rowsHTML += `<td class="qty-cell-report" style="color:${qty > 0 ? '#d32f2f' : '#bbb'};">${qty > 0 ? qty : '—'}</td>`;
+            });
+            rowsHTML += `</tr>`;
+        });
+
+        rowsHTML += `<tr style="background:#fff59d;"><td class="total-label-cell">
+            <div style="font-size:10.5px; font-weight:900; color:#000;">الإجمالي</div>
+            <div style="font-size:7px; font-weight:normal; color:#555; margin-top:1px;">TOTAL</div>
+        </td>`;
+        HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => { rowsHTML += `<td class="total-qty-cell">${colTotals[it]}</td>`; });
+        rowsHTML += `</tr>`;
+
         const dateDisplay = getFormattedDate(new Date(targetDate + 'T00:00:00'));
         const html = `<div class="hospital-items-report">${buildStatementCompanyHeader()}<div class="statement-title"><h2>Hospital Items Quantities</h2><div class="sub">كميات أصناف المستشفيات (شاملة المرتجعات)</div></div><div class="statement-info"><div>التاريخ: <b>${dateDisplay}</b></div><div>المستشفيات: <b>${hospitals.length}</b></div><div>الفواتير: <b>${filtered.length}</b></div></div><div class="report-notice">ℹ️ الكميات = كمية الفاتورة + كمية المرتجع</div><table class="statement-table"><thead><tr style="background:#333;">${headersHTML}</tr></thead><tbody>${rowsHTML}</tbody></table></div>`;
         resultArea.innerHTML = html; lastHospitalItemsHTML = html; lastHospitalItemsFilename = `Hospital_Items_${targetDate}.pdf`;
@@ -2425,7 +2609,7 @@
         return { success, failed };
     };
 
-    // ============ 2) مزامنة الإعدادات (السجل + الأصناف + العملاء + ...) ============
+    // ============ 2) مزامنة الإعدادات ============
     const SETTINGS_SYNCED_KEYS = [
         'fondant_logs',
         'fondant_items',
