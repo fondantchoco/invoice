@@ -669,7 +669,7 @@
     </div>
 </div>
 
-<!-- Modal المرتجعات المجمعة (جديد) -->
+<!-- Modal المرتجعات المجمعة -->
 <div class="modal-overlay" id="consolidatedReturnsModal">
     <div class="modal-content" style="max-width: 1100px;">
         <div class="modal-header">
@@ -782,7 +782,6 @@
     <div class="name">Yasser Elkhateeb</div>
     <div class="title">مطور البرنامج 67011143</div>
 </a>
-
 <script>
     const DEFAULT_FROM_DATE = '2026-10-01';
     function toggleMobileSidebar() { document.getElementById('sidebarMenu').classList.toggle('mobile-open'); }
@@ -865,16 +864,51 @@
         localStorage.setItem('fondant_last_backup_time', Date.now()); checkBackupReminder();
         addLogEntry("تم تصدير نسخة احتياطية", false); alert("تم تحميل النسخة الاحتياطية بنجاح!");
     }
-    function importBackup(event) {
+
+    // ✅ استيراد النسخة الاحتياطية + مزامنة سحابية للفواتير
+    async function importBackup(event) {
         const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                ['last_inv_num','saved_invoices','logs','items','external_items','hospital_customers','external_customers','external_customers_meta','imported_hospital_sales','acknowledged_gaps'].forEach(key => { if (data[key]) localStorage.setItem('fondant_' + key, data[key]); });
+                ['last_inv_num','saved_invoices','logs','items','external_items','hospital_customers','external_customers','external_customers_meta','imported_hospital_sales','acknowledged_gaps'].forEach(key => {
+                    if (data[key]) localStorage.setItem('fondant_' + key, data[key]);
+                });
                 localStorage.setItem('fondant_last_backup_time', Date.now());
-                alert("تم استعادة النسخة الاحتياطية بنجاح! سيتم تحديث الصفحة الآن."); location.reload();
-            } catch (err) { alert("ملف النسخة الاحتياطية غير صالح أو تالف."); }
+
+                const restoredInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+                if (restoredInvoices.length > 0) {
+                    const now = Date.now();
+                    restoredInvoices.forEach((inv, idx) => { inv.updatedAt = now + idx; });
+                    localStorage.setItem('fondant_saved_invoices', JSON.stringify(restoredInvoices));
+
+                    let waited = 0;
+                    while (typeof window.bulkSyncInvoicesToCloud !== 'function' && waited < 8000) {
+                        await new Promise(r => setTimeout(r, 100));
+                        waited += 100;
+                    }
+                    if (typeof window.bulkSyncInvoicesToCloud === 'function') {
+                        try {
+                            alert(`⏳ جاري رفع ${restoredInvoices.length} فاتورة إلى السحابة...\nيرجى الانتظار قليلاً`);
+                            const result = await window.bulkSyncInvoicesToCloud(restoredInvoices);
+                            console.log(`☁️ مزامنة النسخة الاحتياطية: نجح ${result.success}، فشل ${result.failed}`);
+                            alert(`✅ تم استعادة النسخة الاحتياطية!\n📤 مزامنة سحابية: نجح ${result.success}، فشل ${result.failed}\n\nسيتم تحديث الصفحة الآن.`);
+                        } catch(syncErr) {
+                            console.error("⚠️ فشلت المزامنة السحابية:", syncErr);
+                            alert("تم الاستعادة محلياً لكن فشلت المزامنة السحابية. تحقق من اتصال الإنترنت.");
+                        }
+                    } else {
+                        alert("تم الاستعادة محلياً. Firebase لم يكن جاهزاً — سيُزامن تلقائياً عند فتح الصفحة.");
+                    }
+                } else {
+                    alert("تم استعادة النسخة الاحتياطية بنجاح! (لا توجد فواتير للمزامنة)");
+                }
+                location.reload();
+            } catch (err) {
+                console.error(err);
+                alert("ملف النسخة الاحتياطية غير صالح أو تالف.");
+            }
         };
         reader.readAsText(file);
     }
@@ -962,7 +996,8 @@
         const y = dateObj.getFullYear(), m = String(dateObj.getMonth()+1).padStart(2,'0'), day = String(dateObj.getDate()).padStart(2,'0');
         return `${day}-${m}-${y}`;
     }
-    function getDefaultInvoiceDate() { return DEFAULT_FROM_DATE; }
+    // ✅ التعديل: تاريخ الفاتورة = تاريخ اليوم
+    function getDefaultInvoiceDate() { return getTodayDateInputString(); }
     function getTodayDateInputString() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     invoiceDateInput.value = getDefaultInvoiceDate();
@@ -1253,13 +1288,26 @@
         localStorage.setItem('fondant_logs', JSON.stringify(logs));
     }
 
+    // ✅ دالة عرض السجل (مستقلة قابلة للاستدعاء)
+    function renderLogsList() {
+        const tbody = document.getElementById('logsList');
+        const logs = JSON.parse(localStorage.getItem('fondant_logs') || '[]');
+        tbody.innerHTML = '';
+        if (!logs.length) tbody.innerHTML = '<tr><td colspan="3">لا توجد حركات مسجلة.</td></tr>';
+        else logs.forEach((l, idx) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = idx + 1;
+            row.insertCell(1).innerText = l.time;
+            const textCell = row.insertCell(2);
+            if (l.html) textCell.innerHTML = l.text;
+            else textCell.innerText = l.text;
+        });
+    }
+    window.renderLogsList = renderLogsList;
+
     document.getElementById('viewLogsBtn').addEventListener('click', () => {
         requestPassword('أدخل كلمة المرور لسجل الحركات', '123321', () => {
-            const tbody = document.getElementById('logsList');
-            const logs = JSON.parse(localStorage.getItem('fondant_logs') || '[]');
-            tbody.innerHTML = '';
-            if (!logs.length) tbody.innerHTML = '<tr><td colspan="3">لا توجد حركات مسجلة.</td></tr>';
-            else logs.forEach((l, idx) => { const row = tbody.insertRow(); row.insertCell(0).innerText = idx + 1; row.insertCell(1).innerText = l.time; const textCell = row.insertCell(2); if (l.html) textCell.innerHTML = l.text; else textCell.innerText = l.text; });
+            renderLogsList();
             openModal('logsModal');
         });
     });
@@ -1388,8 +1436,6 @@
         openModal('missingInvoicesModal');
     }
     function missingYes() { const current = _missingQueue[0]; if (current != null) { const ack = JSON.parse(localStorage.getItem('fondant_acknowledged_gaps') || '[]'); if (!ack.includes(current)) ack.push(current); localStorage.setItem('fondant_acknowledged_gaps', JSON.stringify(ack)); addLogEntry(`تأكيد تجاهل رقم الفاتورة ${current}`, false); } _missingQueue.shift(); showNextMissingWarning(); }
-
-    // ✅ إصلاح: إزالة الاستدعاء المعطوب لـ newInvoiceData + إضافة مزامنة صحيحة للسحابة
     function missingRegisterCancelled() {
         const current = _missingQueue[0];
         if (current != null) {
@@ -1400,15 +1446,11 @@
                 saved.push(cancelledInvoice);
                 localStorage.setItem('fondant_saved_invoices', JSON.stringify(saved));
                 addLogEntry(`تسجيل الفاتورة ${current} كملغية`, false);
-                // ✅ مزامنة الفاتورة الملغية مع السحابة
-                if (typeof window.syncInvoiceToCloud === 'function') {
-                    window.syncInvoiceToCloud(cancelledInvoice);
-                }
+                if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(cancelledInvoice);
             }
         }
         _missingQueue.shift(); showNextMissingWarning();
     }
-
     function missingNo() { _missingQueue = []; closeModal('missingInvoicesModal'); const cb = _missingCallback; _missingCallback = null; if (cb) cb(); }
 
     document.getElementById('saveInvoiceBtn').addEventListener('click', function() {
@@ -1433,7 +1475,6 @@
         if (invNum > expected) { const ack = JSON.parse(localStorage.getItem('fondant_acknowledged_gaps') || '[]'); for (let n = expected; n < invNum; n++) if (!ack.includes(n)) ack.push(n); localStorage.setItem('fondant_acknowledged_gaps', JSON.stringify(ack)); }
         closeModal('skipWarningModal'); performSaveInvoice(invNum, false);
     }
-    // ✅ إصلاح: إضافة مزامنة الفواتير الملغية مع السحابة
     function skipWarningRegisterCancelled() {
         const invNum = window._skipInvNum, expected = window._skipExpected;
         if (invNum > expected) {
@@ -1444,9 +1485,7 @@
                 if (saved.some(inv => parseInt(inv.number) === n)) continue;
                 const cancelledInvoice = { number: n, date: today, customer: '', phone: '', total: '0.000', type: invoiceType, deliveryFee: 0, items: [], returns: [], cancelled: true, cancelledAt: new Date().toISOString(), updatedAt: Date.now() };
                 saved.push(cancelledInvoice);
-                if (typeof window.syncInvoiceToCloud === 'function') {
-                    window.syncInvoiceToCloud(cancelledInvoice);
-                }
+                if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(cancelledInvoice);
                 count++;
             }
             if (count > 0) { localStorage.setItem('fondant_saved_invoices', JSON.stringify(saved)); addLogEntry(`تسجيل ${count} فاتورة ملغية`, false); }
@@ -1498,18 +1537,11 @@
         const currentStreet = streetInput.innerText.trim();
         const currentJeda = document.getElementById('jedaInput').value;
         const currentHome = document.getElementById('homeInput').value;
-
-        // ✅ إضافة updatedAt لمقارنة التحديثات عند الدمج من السحابة
         const newInvoiceData = { number: invNum, date: invoiceDateInput.value, customer: custName, phone: phoneVal, total: grandTotal, type: invoiceType, deliveryFee: deliveryFee, items, returns, area: currentArea, block: currentBlock, street: currentStreet, jeda: currentJeda, home: currentHome, updatedAt: Date.now() };
         if (cancelled) { newInvoiceData.cancelled = true; newInvoiceData.cancelledAt = new Date().toISOString(); }
         savedInvoices.push(newInvoiceData);
         localStorage.setItem('fondant_saved_invoices', JSON.stringify(savedInvoices));
-
-        // ✅ الأهم: مزامنة الفاتورة مع السحابة (كانت مفقودة تماماً!)
-        if (typeof window.syncInvoiceToCloud === 'function') {
-            window.syncInvoiceToCloud(newInvoiceData);
-        }
-
+        if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(newInvoiceData);
         const prevLast = parseInt(localStorage.getItem('fondant_last_inv_num') || "5000");
         if (parseInt(invNum) > prevLast) localStorage.setItem('fondant_last_inv_num', invNum);
         if (!cancelled && invoiceType === 'external' && (custName || phoneVal)) {
@@ -1531,7 +1563,7 @@
         setTimeout(() => customerInput.focus(), 100);
     }
 
-    document.getElementById('exportDayPDFBtn').addEventListener('click', () => { document.getElementById('exportDayPDFDate').value = DEFAULT_FROM_DATE; openModal('exportDayPDFModal'); });
+    document.getElementById('exportDayPDFBtn').addEventListener('click', () => { document.getElementById('exportDayPDFDate').value = getTodayDateInputString(); openModal('exportDayPDFModal'); });
     async function executeExportDayPDF() {
         const targetDate = document.getElementById('exportDayPDFDate').value;
         const targetType = document.getElementById('exportDayPDFType').value;
@@ -1645,10 +1677,10 @@
             row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice(${inv.number})">${btnLabel}</button>`;
         });
     }
+    window.renderSavedInvoicesList = renderSavedInvoicesList;
 
     document.getElementById('viewInvoicesBtn').addEventListener('click', () => { renderSavedInvoicesList(); openModal('savedInvoicesModal'); setTimeout(() => { checkAndWarnMissingInvoices(); }, 300); });
 
-    // ✅ إصلاح: إضافة حذف الفاتورة من السحابة أيضاً
     function cancelLastInvoice() {
         requestPassword('أدخل كلمة المرور لإلغاء آخر فاتورة', '123321', () => {
             const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
@@ -1660,10 +1692,7 @@
             const newSaved = saved.filter(inv => parseInt(inv.number) !== parseInt(lastInv.number));
             localStorage.setItem('fondant_saved_invoices', JSON.stringify(newSaved));
             localStorage.setItem('fondant_last_inv_num', parseInt(lastInv.number) - 1);
-            // ✅ حذف من السحابة أيضاً
-            if (typeof window.deleteInvoiceFromCloud === 'function') {
-                window.deleteInvoiceFromCloud(lastInv.number);
-            }
+            if (typeof window.deleteInvoiceFromCloud === 'function') window.deleteInvoiceFromCloud(lastInv.number);
             currentInvoiceNum = getExpectedNextInvoiceNumber();
             invoiceNumberInput.value = currentInvoiceNum;
             addLogEntry(`حذف آخر فاتورة رقم [ ${lastInv.number} ]`, false);
@@ -1772,7 +1801,7 @@
     function resetStatementFilters() { document.getElementById('statementCustomer').value = ''; document.getElementById('statementFromDate').value = DEFAULT_FROM_DATE; document.getElementById('statementToDate').value = getTodayDateInputString(); document.getElementById('statementResultArea').innerHTML = '<div style="text-align:center;padding:30px;color:#999;font-size:14px;">اختر العميل والفترة</div>'; lastStatementHTML = ''; }
     async function exportStatementPDF() { if (!lastStatementHTML) { alert("اعرض الكشف أولاً"); return; } await exportHTMLToPDF(lastStatementHTML, lastStatementFilename); }
 
-    document.getElementById('dailySummaryBtn').addEventListener('click', () => { document.getElementById('dailySummaryDate').value = DEFAULT_FROM_DATE; openModal('dailySummaryModal'); });
+    document.getElementById('dailySummaryBtn').addEventListener('click', () => { document.getElementById('dailySummaryDate').value = getTodayDateInputString(); openModal('dailySummaryModal'); });
     let lastDailySummaryHTML = '', lastDailySummaryFilename = '';
     function generateDailySummary() {
         const targetDate = document.getElementById('dailySummaryDate').value;
@@ -1795,7 +1824,7 @@
 
     const HOSPITAL_ITEMS_REPORT_ITEMS = ['Sweet Graham', 'Grape Leaves Lemon', 'Grape Leaves Roman', 'Mohalabiya', 'Saffron Cake', 'Brownies Cups', 'Tiramisu Cheesecake'];
     let lastHospitalItemsHTML = '', lastHospitalItemsFilename = '';
-    document.getElementById('hospitalItemsBtn').addEventListener('click', () => { document.getElementById('hospitalItemsDate').value = DEFAULT_FROM_DATE; openModal('hospitalItemsModal'); });
+    document.getElementById('hospitalItemsBtn').addEventListener('click', () => { document.getElementById('hospitalItemsDate').value = getTodayDateInputString(); openModal('hospitalItemsModal'); });
     function generateHospitalItemsReport() {
         const targetDate = document.getElementById('hospitalItemsDate').value;
         if (!targetDate) { alert('اختر التاريخ'); return; }
@@ -2289,12 +2318,14 @@
     }
     async function exportDailySalesPDF() { if (!lastDailySalesHTML) { alert("اعرض التقرير أولاً"); return; } await exportHTMLToPDF(lastDailySalesHTML, lastDailySalesFilename); }
 
-    document.getElementById('manageItemsBtn').addEventListener('click', () => { currentItemsModalMode = 'hospital'; document.getElementById('itemsModalTitle').innerText = 'إدارة أصناف المستشفيات'; renderItemsModal(); openModal('itemsModal'); });
-    document.getElementById('manageExternalItemsBtn').addEventListener('click', () => { currentItemsModalMode = 'external'; document.getElementById('itemsModalTitle').innerText = 'إدارة الأصناف الخارجية'; renderItemsModal(); openModal('itemsModal'); });
     function renderItemsModal() {
         const tbody = document.getElementById('itemsListTable'); const db = getItemsByMode(currentItemsModalMode); tbody.innerHTML = '';
         db.forEach((item, index) => { const tr = document.createElement('tr'); tr.innerHTML = `<td><input type="text" class="edit-item-name" value="${item.name}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><input type="number" class="edit-item-price" value="${item.price.toFixed(3)}" step="0.001" style="width:80px;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><button class="btn btn-danger" onclick="deleteItem(${index})">حذف</button></td>`; tbody.appendChild(tr); });
     }
+    window.renderItemsModal = renderItemsModal;
+
+    document.getElementById('manageItemsBtn').addEventListener('click', () => { currentItemsModalMode = 'hospital'; document.getElementById('itemsModalTitle').innerText = 'إدارة أصناف المستشفيات'; renderItemsModal(); openModal('itemsModal'); });
+    document.getElementById('manageExternalItemsBtn').addEventListener('click', () => { currentItemsModalMode = 'external'; document.getElementById('itemsModalTitle').innerText = 'إدارة الأصناف الخارجية'; renderItemsModal(); openModal('itemsModal'); });
     function addItemToModal() { const tbody = document.getElementById('itemsListTable'); const tr = document.createElement('tr'); tr.innerHTML = `<td><input type="text" class="edit-item-name" value="" placeholder="اسم الصنف" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><input type="number" class="edit-item-price" value="0.500" step="0.001" style="width:80px;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><button class="btn btn-danger" onclick="this.closest('tr').remove()">حذف</button></td>`; tbody.appendChild(tr); }
     function deleteItem(index) { if (confirm("حذف؟")) { getItemsByMode(currentItemsModalMode).splice(index, 1); renderItemsModal(); } }
     function saveItemsModal() {
@@ -2307,18 +2338,22 @@
         if (document.querySelectorAll('#invoiceRows tr').length === 0) populateAllDefaultItems();
     }
 
-    document.getElementById('manageHospitalNamesBtn').addEventListener('click', () => { renderHospitalNames(); openModal('hospitalNamesModal'); });
     function renderHospitalNames() { const tbody = document.getElementById('hospitalNamesList'); tbody.innerHTML = ''; hospitalCustomersDB.forEach((name, index) => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${index + 1}</td><td><input type="text" class="edit-hosp-name" value="${name}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><button class="btn btn-danger" onclick="deleteHospitalName(${index})">حذف</button></td>`; tbody.appendChild(tr); }); }
+    window.renderHospitalNames = renderHospitalNames;
+
+    document.getElementById('manageHospitalNamesBtn').addEventListener('click', () => { renderHospitalNames(); openModal('hospitalNamesModal'); });
     function addHospitalNameRow() { const tbody = document.getElementById('hospitalNamesList'); const tr = document.createElement('tr'); tr.innerHTML = `<td>${tbody.querySelectorAll('tr').length + 1}</td><td><input type="text" class="edit-hosp-name" value="" placeholder="اسم المستشفى" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:14px;"></td><td><button class="btn btn-danger" onclick="this.closest('tr').remove()">حذف</button></td>`; tbody.appendChild(tr); }
     function deleteHospitalName(index) { if (confirm("حذف؟")) { hospitalCustomersDB.splice(index, 1); renderHospitalNames(); } }
     function saveHospitalNames() { const rows = document.querySelectorAll('#hospitalNamesList tr'); const newNames = []; rows.forEach(row => { const input = row.querySelector('.edit-hosp-name'); if (input && input.value.trim()) newNames.push(input.value.trim()); }); hospitalCustomersDB = newNames; localStorage.setItem('fondant_hospital_customers', JSON.stringify(newNames)); alert(`تم حفظ ${newNames.length} اسم!`); closeModal('hospitalNamesModal'); }
 
-    document.getElementById('manageExternalCustomersBtn').addEventListener('click', () => { renderExternalCustomers(); openModal('externalCustomersModal'); });
     function renderExternalCustomers() {
         const tbody = document.getElementById('externalCustomersList'); tbody.innerHTML = '';
         if (!externalCustomersMeta.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">لا يوجد عملاء.</td></tr>'; return; }
         externalCustomersMeta.forEach((c, index) => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${index + 1}</td><td><input type="text" class="edit-ext-name" value="${c.name || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><input type="text" class="edit-ext-phone" value="${c.phone || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;direction:ltr;"></td><td><input type="text" class="edit-ext-area" value="${c.area || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><input type="text" class="edit-ext-block" value="${c.block || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><input type="text" class="edit-ext-street" value="${c.street || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><input type="text" class="edit-ext-jeda" value="${c.jeda || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><input type="text" class="edit-ext-home" value="${c.home || ''}" style="width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;"></td><td><button class="btn btn-danger" onclick="deleteExternalCustomer(${index})" style="padding:4px 8px;font-size:12px;">حذف</button></td>`; tbody.appendChild(tr); });
     }
+    window.renderExternalCustomers = renderExternalCustomers;
+
+    document.getElementById('manageExternalCustomersBtn').addEventListener('click', () => { renderExternalCustomers(); openModal('externalCustomersModal'); });
     function addExternalCustomerRow() { const tbody = document.getElementById('externalCustomersList'); if (tbody.querySelector('td[colspan]')) tbody.innerHTML = ''; const tr = document.createElement('tr'); const style = 'width:100%;text-align:center;border:none;background:transparent;font-weight:bold;font-size:13px;'; tr.innerHTML = `<td>${tbody.querySelectorAll('tr').length + 1}</td><td><input type="text" class="edit-ext-name" value="" placeholder="اسم" style="${style}"></td><td><input type="text" class="edit-ext-phone" value="" placeholder="موبايل" style="${style} direction:ltr;"></td><td><input type="text" class="edit-ext-area" value="" placeholder="منطقة" style="${style}"></td><td><input type="text" class="edit-ext-block" value="" placeholder="قطعة" style="${style}"></td><td><input type="text" class="edit-ext-street" value="" placeholder="شارع" style="${style}"></td><td><input type="text" class="edit-ext-jeda" value="" placeholder="جادة" style="${style}"></td><td><input type="text" class="edit-ext-home" value="" placeholder="منزل" style="${style}"></td><td><button class="btn btn-danger" onclick="this.closest('tr').remove()" style="padding:4px 8px;font-size:12px;">حذف</button></td>`; tbody.appendChild(tr); }
     function deleteExternalCustomer(index) { if (confirm("حذف؟")) { externalCustomersMeta.splice(index, 1); renderExternalCustomers(); } }
     function saveExternalCustomers() { const rows = document.querySelectorAll('#externalCustomersList tr'); const newMeta = []; rows.forEach(row => { const nameInput = row.querySelector('.edit-ext-name'); if (!nameInput) return; const name = nameInput.value.trim(); const phone = row.querySelector('.edit-ext-phone')?.value.trim() || ''; const area = row.querySelector('.edit-ext-area')?.value.trim() || ''; const block = row.querySelector('.edit-ext-block')?.value.trim() || ''; const street = row.querySelector('.edit-ext-street')?.value.trim() || ''; const jeda = row.querySelector('.edit-ext-jeda')?.value.trim() || ''; const home = row.querySelector('.edit-ext-home')?.value.trim() || ''; if (name || phone) newMeta.push({ name: toCapitalTitleCase(name), phone, area, block, street, jeda, home }); }); externalCustomersMeta = newMeta; localStorage.setItem('fondant_external_customers_meta', JSON.stringify(newMeta)); alert(`تم حفظ ${newMeta.length} عميل!`); closeModal('externalCustomersModal'); }
@@ -2332,14 +2367,13 @@
 </script>
 
 <!-- ============================================================ -->
-<!-- Firebase & Firestore Integration (Modular SDK) — مُصحح -->
+<!-- Firebase & Firestore Integration — مزامنة شاملة -->
 <!-- ============================================================ -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    // إعدادات المشروع السحابي
     const firebaseConfig = {
       apiKey: "AIzaSyB2g8ZrwpaF9svjQxn5xfILZDkZcG34d8Q",
       authDomain: "testonlinefchoco.firebaseapp.com",
@@ -2355,45 +2389,135 @@
     const db = getFirestore(app);
     window.db = db;
 
-    // ✅ مزامنة فاتورة (إنشاء / تعديل) مع Firestore
+    // ============ 1) مزامنة الفواتير ============
     window.syncInvoiceToCloud = async function(invoiceData) {
         if (!invoiceData || !invoiceData.number) return;
         try {
-            const docRef = doc(db, "invoices", String(invoiceData.number));
-            await setDoc(docRef, invoiceData);
-            console.log("☁️ تم رفع الفاتورة للسحابة بنجاح:", invoiceData.number);
-        } catch (e) {
-            console.error("❌ خطأ في رفع الفاتورة للسحابة:", e);
-        }
+            await setDoc(doc(db, "invoices", String(invoiceData.number)), invoiceData);
+            console.log("☁️ فاتورة مرفوعة:", invoiceData.number);
+        } catch (e) { console.error("❌ فشل رفع الفاتورة:", e); }
     };
 
-    // ✅ حذف فاتورة من Firestore
     window.deleteInvoiceFromCloud = async function(invoiceNumber) {
         try {
-            const docRef = doc(db, "invoices", String(invoiceNumber));
-            await deleteDoc(docRef);
-            console.log("🗑️ تم حذف الفاتورة من السحابة:", invoiceNumber);
-        } catch (e) {
-            console.error("❌ خطأ في حذف الفاتورة من السحابة:", e);
+            await deleteDoc(doc(db, "invoices", String(invoiceNumber)));
+            console.log("🗑️ فاتورة محذوفة من السحابة:", invoiceNumber);
+        } catch (e) { console.error("❌ فشل حذف الفاتورة:", e); }
+    };
+
+    window.bulkSyncInvoicesToCloud = async function(invoices) {
+        if (!invoices || invoices.length === 0) return { success: 0, failed: 0 };
+        let success = 0, failed = 0;
+        const chunkSize = 500;
+        for (let i = 0; i < invoices.length; i += chunkSize) {
+            const chunk = invoices.slice(i, i + chunkSize);
+            try {
+                const batch = writeBatch(db);
+                let validCount = 0;
+                chunk.forEach(inv => {
+                    if (!inv || !inv.number) { failed++; return; }
+                    batch.set(doc(db, "invoices", String(inv.number)), inv);
+                    validCount++;
+                });
+                if (validCount > 0) { await batch.commit(); success += validCount; }
+            } catch (e) { console.error(`❌ فشل دفعة ${i}:`, e); failed += chunk.length; }
+        }
+        return { success, failed };
+    };
+
+    // ============ 2) مزامنة الإعدادات (السجل + الأصناف + العملاء + ...) ============
+    const SETTINGS_SYNCED_KEYS = [
+        'fondant_logs',
+        'fondant_items',
+        'fondant_external_items',
+        'fondant_hospital_customers',
+        'fondant_external_customers_meta',
+        'fondant_imported_hospital_sales',
+        'fondant_acknowledged_gaps',
+        'fondant_last_inv_num'
+    ];
+
+    window.syncSettingToCloud = async function(key, value) {
+        try {
+            await setDoc(doc(db, "settings", key), { value: value, updatedAt: Date.now() });
+            console.log(`☁️ إعداد مرفوع: ${key}`);
+        } catch (e) { console.error(`❌ فشل رفع ${key}:`, e); }
+    };
+
+    let _isUpdatingFromCloud = false;
+    const _originalSetItem = localStorage.setItem.bind(localStorage);
+
+    localStorage.setItem = function(key, value) {
+        _originalSetItem(key, value);
+        if (!_isUpdatingFromCloud && SETTINGS_SYNCED_KEYS.includes(key)) {
+            _originalSetItem(key + '_ts', String(Date.now()));
+            if (typeof window.syncSettingToCloud === 'function') {
+                window.syncSettingToCloud(key, value);
+            }
         }
     };
 
-    // ✅ الاستماع للتحديثات السحابية + دمج ذكي مع بيانات محلية
-    onSnapshot(collection(db, "invoices"), (snapshot) => {
-        let cloudInvoices = [];
-        snapshot.forEach((d) => cloudInvoices.push(d.data()));
-
-        // رفع أولي للبيانات المحلية إن كانت السحابة فارغة
-        if (cloudInvoices.length === 0) {
-            const localInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
-            if (localInvoices.length > 0) {
-                console.log(`📤 رفع أولي: ${localInvoices.length} فاتورة محلية إلى السحابة...`);
-                localInvoices.forEach(inv => window.syncInvoiceToCloud(inv));
+    let _settingsInitialized = false;
+    onSnapshot(collection(db, "settings"), (snapshot) => {
+        if (snapshot.empty) {
+            if (!_settingsInitialized) {
+                _settingsInitialized = true;
+                console.log('📤 رفع أولي للإعدادات المحلية إلى السحابة...');
+                SETTINGS_SYNCED_KEYS.forEach(key => {
+                    const val = localStorage.getItem(key);
+                    if (val !== null) window.syncSettingToCloud(key, val);
+                });
             }
             return;
         }
+        _settingsInitialized = true;
 
-        // دمج: نستخدم updatedAt لضمان عدم ضياع التعديلات المحلية الأحدث
+        _isUpdatingFromCloud = true;
+        try {
+            snapshot.forEach((d) => {
+                const key = d.id;
+                const data = d.data();
+                if (!data || data.value === undefined) return;
+
+                const localVal = localStorage.getItem(key);
+                const localTs = parseInt(localStorage.getItem(key + '_ts') || '0');
+                const cloudTs = data.updatedAt || 0;
+
+                if (localVal === null || cloudTs > localTs) {
+                    _originalSetItem(key, data.value);
+                    _originalSetItem(key + '_ts', String(cloudTs));
+                    console.log(`⬇️ تحديث محلي من السحابة: ${key}`);
+                }
+            });
+        } finally {
+            _isUpdatingFromCloud = false;
+        }
+
+        try {
+            if (document.getElementById('logsModal')?.style.display === 'flex' && typeof window.renderLogsList === 'function') window.renderLogsList();
+            if (document.getElementById('itemsModal')?.style.display === 'flex' && typeof window.renderItemsModal === 'function') window.renderItemsModal();
+            if (document.getElementById('hospitalNamesModal')?.style.display === 'flex' && typeof window.renderHospitalNames === 'function') window.renderHospitalNames();
+            if (document.getElementById('externalCustomersModal')?.style.display === 'flex' && typeof window.renderExternalCustomers === 'function') window.renderExternalCustomers();
+        } catch(err) { console.warn("⚠️ خطأ في إعادة الرسم:", err); }
+    }, (error) => { console.error("❌ خطأ في الاستماع للإعدادات:", error); });
+
+    // ============ 3) الاستماع للفواتير ============
+    let isInitialCloudLoad = true;
+    onSnapshot(collection(db, "invoices"), (snapshot) => {
+        const cloudInvoices = [];
+        snapshot.forEach((d) => cloudInvoices.push(d.data()));
+
+        if (cloudInvoices.length === 0) {
+            const localInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+            if (localInvoices.length > 0 && isInitialCloudLoad) {
+                isInitialCloudLoad = false;
+                console.log(`📤 رفع أولي: ${localInvoices.length} فاتورة محلية إلى السحابة...`);
+                window.bulkSyncInvoicesToCloud(localInvoices);
+            }
+            return;
+        }
+        isInitialCloudLoad = false;
+
         const localInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         const mergedMap = new Map();
         localInvoices.forEach(inv => mergedMap.set(String(inv.number), inv));
@@ -2401,25 +2525,18 @@
             const existing = mergedMap.get(String(inv.number));
             const cloudTs = inv.updatedAt || 0;
             const localTs = (existing && existing.updatedAt) || 0;
-            // السحابة تفوز فقط إذا كانت أحدث أو متساوية
-            if (!existing || cloudTs >= localTs) {
-                mergedMap.set(String(inv.number), inv);
-            }
+            if (!existing || cloudTs >= localTs) mergedMap.set(String(inv.number), inv);
         });
 
         const finalInvoices = Array.from(mergedMap.values());
         localStorage.setItem('fondant_saved_invoices', JSON.stringify(finalInvoices));
 
-        // تحديث واجهة الفواتير المحفوظة إن كانت مفتوحة
-        const modal = document.getElementById('savedInvoicesModal');
-        if (modal && modal.style.display === 'flex' && typeof window.renderSavedInvoicesList === 'function') {
+        if (document.getElementById('savedInvoicesModal')?.style.display === 'flex' && typeof window.renderSavedInvoicesList === 'function') {
             window.renderSavedInvoicesList();
         }
-    }, (error) => {
-        console.error("❌ خطأ في الاستماع للسحابة:", error);
-    });
+    }, (error) => { console.error("❌ خطأ في الاستماع للفواتير:", error); });
 
-    console.log("🔥 Firebase + Firestore جاهز للعمل");
+    console.log("🔥 Firebase + Firestore + Settings Sync جاهز");
 </script>
 
 </body>
