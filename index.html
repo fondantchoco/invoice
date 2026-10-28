@@ -48,7 +48,7 @@
         .header-left-side { text-align: left; font-size: 18px; font-weight: bold; color: #111; line-height: 1.4; display: flex; flex-direction: column; justify-content: space-between; }
         .header-line-left { text-align: left; }
         .inv-no-badge { font-size: 22px; font-weight: bold; color: #d32f2f; display: flex; align-items: center; justify-content: flex-start; gap: 6px; }
-        #invoiceNumberInput { border: none; border-bottom: 1.5px dotted #d32f2f; font-size: 22px; font-weight: bold; color: #d32f2f; text-align: center; width: 95px; background: transparent; outline: none; font-family: Arial, sans-serif; }
+        #invoiceNumberInput { border: none; border-bottom: 1.5px dotted #d32f2f; font-size: 22px; font-weight: bold; color: #d32f2f; text-align: center; width: 110px; background: transparent; outline: none; font-family: Arial, sans-serif; }
         #invoiceNumberInput:focus { border-bottom-style: solid; }
         .fields-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
         .field-line { display: flex; align-items: center; gap: 6px; width: 100%; direction: ltr; }
@@ -188,10 +188,10 @@
         .hospital-items-report .statement-table { font-size: 9px !important; margin-bottom: 4px !important; table-layout: fixed !important; width: 100% !important; border-collapse: collapse !important; }
         .hospital-items-report .statement-table th { padding: 3px 2px !important; font-size: 8px !important; line-height: 1.1 !important; }
         .hospital-items-report .statement-table td { padding: 3.3px 2px !important; line-height: 1.2 !important; }
-        .hospital-items-report .hospital-name-cell { font-weight: bold !important; text-align: right !important; padding: 3.3px 5px !important; background: #e3f2fd !important; font-size: 10.5px !important; line-height: 1.2 !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word !important; overflow-wrap: break-word !important; }
-        .hospital-items-report .qty-cell-report { font-weight: 900 !important; font-size: 21px !important; padding: 3.3px 2px !important; text-align: center !important; line-height: 1.2 !important; }
+        .hospital-items-report .hospital-name-cell { font-weight: bold !important; text-align: right !important; padding: 3.3px 5px !important; background: #e3f2fd !important; font-size: 12.08px !important; line-height: 1.2 !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word !important; overflow-wrap: break-word !important; }
+        .hospital-items-report .qty-cell-report { font-weight: 900 !important; font-size: 16.8px !important; padding: 3.3px 2px !important; text-align: center !important; line-height: 1.2 !important; }
         .hospital-items-report .total-label-cell { font-weight: 900 !important; text-align: right !important; padding: 3.3px 5px !important; font-size: 10.5px !important; background: #fff59d !important; line-height: 1.2 !important; }
-        .hospital-items-report .total-qty-cell { font-weight: 900 !important; font-size: 22px !important; padding: 3.3px 2px !important; text-align: center !important; color: #d32f2f !important; border: 1.5px solid #000 !important; background: #fff59d !important; line-height: 1.2 !important; }
+        .hospital-items-report .total-qty-cell { font-weight: 900 !important; font-size: 17.6px !important; padding: 3.3px 2px !important; text-align: center !important; color: #d32f2f !important; border: 1.5px solid #000 !important; background: #fff59d !important; line-height: 1.2 !important; }
         .btn-move-to-return { padding: 3px 5px; border-radius: 3px; font-size: 12px; background: #ff9800; color: white; border: none; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; }
         .btn-move-to-return:hover { background: #e68900; }
         .btn-return-to-invoice { padding: 3px 5px; border-radius: 3px; font-size: 12px; background: #17a2b8; color: white; border: none; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; }
@@ -216,6 +216,8 @@
             .mobile-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9997; display: none; }
             .top-bar.mobile-open ~ .mobile-backdrop { display: block; }
             .signature-card { position: relative; bottom: auto; left: auto; margin: 20px auto 0; width: fit-content; animation: none; }
+            #hospitalItemsModal { padding-right: 0 !important; }
+            #hospitalItemsModal .modal-content { max-width: 95% !important; }
         }
 
         /* ============================================================ */
@@ -374,7 +376,7 @@
                         <div class="header-line-left">فاتورة نقداً / بالحساب<br>Cash/Credit Invoice</div>
                         <div class="inv-no-badge" dir="ltr">
                             <span>INV No.</span>
-                            <input type="number" id="invoiceNumberInput" value="5001">
+                            <input type="text" id="invoiceNumberInput" value="5001">
                         </div>
                     </div>
                 </div>
@@ -521,7 +523,7 @@
         <div style="display:flex; flex-direction:column; gap:15px; padding:15px 0;">
             <div>
                 <label style="font-weight:bold; font-size:13px; display:block; margin-bottom:5px;">أدخل رقم الفاتورة:</label>
-                <input type="number" id="specificInvoiceNum" placeholder="مثال: 5001" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; font-size:16px; text-align:center; font-weight:bold;">
+                <input type="text" id="specificInvoiceNum" placeholder="مثال: 5001 أو FC-1001" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; font-size:16px; text-align:center; font-weight:bold;">
             </div>
             <div style="font-size:11px; color:#666; text-align:center;">💡 سيتم تنزيل الفاتورة بنفس تنسيق النظام</div>
             <button class="btn btn-deep-orange" style="padding:12px; font-size:15px;" onclick="executeSpecificInvoicePDF()">📄 تنزيل الفاتورة</button>
@@ -688,8 +690,8 @@
 </div>
 
 <!-- Modal كميات أصناف المستشفيات -->
-<div class="modal-overlay" id="hospitalItemsModal">
-    <div class="modal-content" style="max-width: 1400px;">
+<div class="modal-overlay" id="hospitalItemsModal" style="padding-right: 220px;">
+    <div class="modal-content" style="max-width: 1100px;">
         <div class="modal-header">
             <h3>🏥 تقرير كميات أصناف المستشفيات</h3>
             <button class="btn btn-danger" style="width: auto;" onclick="closeModal('hospitalItemsModal')">إغلاق ✖</button>
@@ -945,20 +947,45 @@
         return HOSPITAL_NAME_ALIASES[trimmed.toUpperCase()] || trimmed;
     }
     function getActiveSavedInvoices() { return JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]').filter(inv => !inv.cancelled); }
-    function getExpectedNextInvoiceNumber() {
+
+    // 🆕 دالة موحدة تُرجع رقم الفاتورة المتوقع حسب النوع
+    function getExpectedNextInvoiceNumber(type = invoiceType) {
         const savedInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        if (type === 'external') {
+            // الفواتير الخارجية: سيريال مستقل FC-1001، FC-1002 ...
+            const externalInvoices = savedInvoices.filter(inv => inv.type === 'external');
+            let maxNum = 1000;
+            externalInvoices.forEach(inv => {
+                const numStr = String(inv.number || '');
+                if (!/^FC-\d+$/i.test(numStr)) return; // تجاهل الأرقام القديمة غير المطابقة
+                const num = parseInt(numStr.replace(/^FC-/i, '')) || 0;
+                if (num > maxNum) maxNum = num;
+            });
+            return 'FC-' + (maxNum + 1);
+        }
+        // فواتير المستشفيات: سيريال رقمي 5001، 5002 ...
+        const hospitalInvoices = savedInvoices.filter(inv => (inv.type || 'hospital') === 'hospital');
         const storedLast = parseInt(localStorage.getItem('fondant_last_inv_num') || "5000");
         let maxFromSaved = 5000;
-        if (savedInvoices.length > 0) maxFromSaved = Math.max(...savedInvoices.map(inv => parseInt(inv.number) || 0));
+        if (hospitalInvoices.length > 0) maxFromSaved = Math.max(...hospitalInvoices.map(inv => parseInt(inv.number) || 0));
         return Math.max(maxFromSaved, storedLast) + 1;
     }
 
-    let currentInvoiceNum = getExpectedNextInvoiceNumber();
+    let currentInvoiceNum = getExpectedNextInvoiceNumber('hospital');
     let editingInvoiceNumber = null;
     let editingCancelledInvoice = false;
     const invoiceNumberInput = document.getElementById('invoiceNumberInput');
     invoiceNumberInput.value = currentInvoiceNum;
-    invoiceNumberInput.addEventListener('input', function() { if (this.value) currentInvoiceNum = parseInt(this.value) || currentInvoiceNum; });
+    invoiceNumberInput.addEventListener('input', function() {
+        if (this.value) {
+            if (invoiceType === 'external') {
+                currentInvoiceNum = this.value.trim();
+            } else {
+                const parsed = parseInt(this.value);
+                if (!isNaN(parsed)) currentInvoiceNum = parsed;
+            }
+        }
+    });
 
     function checkBackupReminder() {
         if (sessionStorage.getItem('fondant_backup_dismissed') === 'true') { document.getElementById('backupReminderBanner').style.display = 'none'; return; }
@@ -1228,7 +1255,6 @@
         const y = dateObj.getFullYear(), m = String(dateObj.getMonth()+1).padStart(2,'0'), day = String(dateObj.getDate()).padStart(2,'0');
         return `${day}-${m}-${y}`;
     }
-    // 🆕 التاريخ الافتراضي: للفواتير المستشفيات = تاريخ اليوم التالي، للخارجية = تاريخ اليوم
     function getTomorrowDateInputString() {
         const d = new Date();
         d.setDate(d.getDate() + 1);
@@ -1509,6 +1535,9 @@
         document.getElementById('deliveryFeeInput').value = '';
         invoiceDateInput.value = getDefaultInvoiceDate();
         populateAllDefaultItems();
+        // 🆕 تحديث السيريال حسب النوع الجديد
+        currentInvoiceNum = getExpectedNextInvoiceNumber(newType);
+        invoiceNumberInput.value = currentInvoiceNum;
         addLogEntry(`التبديل إلى ${newType === 'external' ? 'خارجية' : 'مستشفيات'}`, false);
     }
     function populateAllDefaultItems() { invoiceRows.innerHTML = ''; getActiveItemsDB().forEach(item => createRowElement({ name: item.name, price: item.price, qty: '' })); updateGrandTotal(); }
@@ -1649,7 +1678,7 @@
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         const acknowledged = JSON.parse(localStorage.getItem('fondant_acknowledged_gaps') || '[]');
         const ackSet = new Set(acknowledged.map(Number));
-        const numbers = [...new Set(saved.map(inv => parseInt(inv.number) || 0).filter(n => n > 0))].sort((a, b) => a - b);
+        const numbers = [...new Set(saved.filter(inv => (inv.type || 'hospital') === 'hospital').map(inv => parseInt(inv.number) || 0).filter(n => n > 0))].sort((a, b) => a - b);
         if (numbers.length < 2) return [];
         const missing = [];
         for (let i = 1; i < numbers.length; i++) {
@@ -1693,6 +1722,32 @@
 
     document.getElementById('saveInvoiceBtn').addEventListener('click', function() {
         const invNum = currentInvoiceNum;
+
+        // 🆕 الفواتير الخارجية: سيريال مستقل FC-XXXX بدون تحذير تخطي
+        if (invoiceType === 'external') {
+            // التحقق من صيغة الرقم
+            if (!/^FC-\d+$/i.test(String(invNum).trim())) {
+                const nextNum = getExpectedNextInvoiceNumber('external');
+                currentInvoiceNum = nextNum;
+                invoiceNumberInput.value = nextNum;
+                alert(`⚠️ الصيغة غير صحيحة. يجب أن يكون الرقم بصيغة FC-XXXX.\nتم تعيين: ${nextNum}`);
+                return;
+            }
+            const isEditing = editingInvoiceNumber !== null;
+            if (!isEditing) {
+                const savedInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+                if (savedInvoices.some(i => String(i.number) === String(invNum))) {
+                    currentInvoiceNum = getExpectedNextInvoiceNumber('external');
+                    invoiceNumberInput.value = currentInvoiceNum;
+                    alert(`⚠️ الرقم ${invNum} مستخدم مسبقاً. تم تعيين الرقم التالي: ${currentInvoiceNum}`);
+                    return;
+                }
+            }
+            performSaveInvoice(invNum, false);
+            return;
+        }
+
+        // فواتير المستشفيات: المنطق الأصلي بالكامل
         const expectedNext = getExpectedNextInvoiceNumber();
         const isEditing = editingInvoiceNumber !== null;
         if (!isEditing && parseInt(invNum) !== expectedNext) {
@@ -1764,8 +1819,8 @@
         const grandTotal = cancelled ? '0.000' : document.getElementById('grandTotalVal').innerText;
         const deliveryFee = cancelled ? 0 : (invoiceType === 'external' ? getDeliveryFee() : 0);
         let savedInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
-        if (editingInvoiceNumber !== null) savedInvoices = savedInvoices.filter(i => parseInt(i.number) !== parseInt(editingInvoiceNumber));
-        if (savedInvoices.some(i => parseInt(i.number) === parseInt(invNum))) { alert(`⚠️ رقم الفاتورة ${invNum} موجود مسبقاً.`); return; }
+        if (editingInvoiceNumber !== null) savedInvoices = savedInvoices.filter(i => String(i.number) !== String(editingInvoiceNumber));
+        if (savedInvoices.some(i => String(i.number) === String(invNum))) { alert(`⚠️ رقم الفاتورة ${invNum} موجود مسبقاً.`); return; }
         let items = [];
         if (!cancelled) document.querySelectorAll('#invoiceRows tr').forEach(tr => { items.push({ name: tr.querySelector('.prod-input').value, price: tr.querySelector('.price-input').value, qty: tr.querySelector('.qty-input').value, total: tr.querySelector('.row-total').innerText }); });
         let returns = [];
@@ -1780,8 +1835,11 @@
         savedInvoices.push(newInvoiceData);
         localStorage.setItem('fondant_saved_invoices', JSON.stringify(savedInvoices));
         if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(newInvoiceData);
-        const prevLast = parseInt(localStorage.getItem('fondant_last_inv_num') || "5000");
-        if (parseInt(invNum) > prevLast) localStorage.setItem('fondant_last_inv_num', invNum);
+        // تحديث fondant_last_inv_num فقط لفواتير المستشفيات (السيريال الرقمي)
+        if (invoiceType !== 'external') {
+            const prevLast = parseInt(localStorage.getItem('fondant_last_inv_num') || "5000");
+            if (parseInt(invNum) > prevLast) localStorage.setItem('fondant_last_inv_num', invNum);
+        }
         if (!cancelled && invoiceType === 'external' && (custName || phoneVal)) {
             let existing = null;
             if (phoneVal) existing = externalCustomersMeta.find(c => c.phone === phoneVal);
@@ -1807,7 +1865,7 @@
         const targetType = document.getElementById('exportDayPDFType').value;
         if (!targetDate) { alert("اختر التاريخ"); return; }
         const saved = getActiveSavedInvoices();
-        const filtered = saved.filter(inv => { if (inv.date !== targetDate) return false; if (targetType !== 'all' && (inv.type || 'hospital') !== targetType) return false; return true; }).sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+        const filtered = saved.filter(inv => { if (inv.date !== targetDate) return false; if (targetType !== 'all' && (inv.type || 'hospital') !== targetType) return false; return true; }).sort((a, b) => { const na = a.number, nb = b.number; if (/^FC-/i.test(String(na)) && /^FC-/i.test(String(nb))) { return (parseInt(String(na).replace(/^FC-/i,'')) || 0) - (parseInt(String(nb).replace(/^FC-/i,'')) || 0); } return (parseInt(na) || 0) - (parseInt(nb) || 0); });
         if (!filtered.length) { alert(`لا توجد فواتير بتاريخ ${targetDate}`); return; }
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -1848,10 +1906,9 @@
     async function executeSpecificInvoicePDF() {
         const numStr = document.getElementById('specificInvoiceNum').value.trim();
         if (!numStr) { alert('أدخل رقم الفاتورة'); return; }
-        const num = parseInt(numStr);
         const saved = getActiveSavedInvoices();
-        const inv = saved.find(i => parseInt(i.number) === num);
-        if (!inv) { alert('لم يتم العثور على الفاتورة رقم ' + num); return; }
+        const inv = saved.find(i => String(i.number) === String(numStr) || parseInt(i.number) === parseInt(numStr));
+        if (!inv) { alert('لم يتم العثور على الفاتورة رقم ' + numStr); return; }
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         const a4Container = document.getElementById('a4Wrapper');
@@ -1875,11 +1932,11 @@
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const imgHeight = (canvas.height * 210) / canvas.width;
             pdf.addImage(imgData, 'JPEG', 0, 0, 210, imgHeight);
-            pdf.save(`Invoice_${num}.pdf`);
+            pdf.save(`Invoice_${numStr}.pdf`);
             hiddenRows.forEach(tr => tr.style.display = '');
-            addLogEntry(`تنزيل الفاتورة رقم ${num} PDF`, false);
+            addLogEntry(`تنزيل الفاتورة رقم ${numStr} PDF`, false);
             closeModal('specificInvoicePDFModal');
-            alert(`تم تنزيل الفاتورة رقم ${num} بنجاح!`);
+            alert(`تم تنزيل الفاتورة رقم ${numStr} بنجاح!`);
         } catch (err) { alert('خطأ: ' + err.message); }
         finally { a4Container.classList.remove('pdf-mode'); invoiceType = currentSavedType; updateInvoiceTypeUI(); currentInvoiceNum = getExpectedNextInvoiceNumber(); invoiceNumberInput.value = currentInvoiceNum; clearFormFields(); }
     }
@@ -1892,6 +1949,8 @@
         editingInvoiceNumber = null; editingCancelledInvoice = false;
         invoiceDateInput.value = getDefaultInvoiceDate();
         populateAllDefaultItems();
+        currentInvoiceNum = getExpectedNextInvoiceNumber();
+        invoiceNumberInput.value = currentInvoiceNum;
     }
 
     document.getElementById('clearInvoiceBtn').addEventListener('click', () => { if (confirm("هل تريد إعادة تحميل جميع الأصناف وتفريغ الحقول؟")) { clearFormFields(); addLogEntry("إعادة تحميل الأصناف", false); } });
@@ -1901,7 +1960,15 @@
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         tbody.innerHTML = '';
         if (!saved.length) { tbody.innerHTML = '<tr><td colspan="6">لا توجد فواتير محفوظة.</td></tr>'; return; }
-        const sorted = saved.slice().sort((a, b) => { const numA = parseInt(a.number) || 0, numB = parseInt(b.number) || 0; if (numB !== numA) return numB - numA; return (b.date || '').localeCompare(a.date || ''); });
+        const sorted = saved.slice().sort((a, b) => {
+            const aExt = /^FC-/i.test(String(a.number));
+            const bExt = /^FC-/i.test(String(b.number));
+            if (aExt !== bExt) return aExt ? -1 : 1;
+            if (aExt) return (parseInt(String(a.number).replace(/^FC-/i,'')) || 0) - (parseInt(String(b.number).replace(/^FC-/i,'')) || 0);
+            const numA = parseInt(a.number) || 0, numB = parseInt(b.number) || 0;
+            if (numB !== numA) return numB - numA;
+            return (b.date || '').localeCompare(a.date || '');
+        });
         sorted.forEach(inv => {
             const row = tbody.insertRow();
             if (inv.cancelled) row.classList.add('cancelled-row');
@@ -1912,7 +1979,7 @@
             custCell.innerHTML = inv.cancelled ? `<span class="cancelled-badge">ملغية</span>${inv.customer || '—'}` : (inv.customer || '');
             row.insertCell(4).innerText = inv.cancelled ? '—' : inv.total;
             const btnLabel = inv.cancelled ? '🔓 تعديل (بكلمة مرور)' : 'استدعاء';
-            row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice(${inv.number})">${btnLabel}</button>`;
+            row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice('${inv.number}')">${btnLabel}</button>`;
         });
     }
     window.renderSavedInvoicesList = renderSavedInvoicesList;
@@ -1927,9 +1994,11 @@
             const lastInv = sorted[sorted.length - 1];
             const msg = `حذف نهائي للفاتورة:\n\nرقم: ${lastInv.number}\nالعميل: ${lastInv.customer || '—'}\nالتاريخ: ${lastInv.date || '—'}\nالإجمالي: ${lastInv.cancelled ? '(ملغية)' : lastInv.total}\n\n⚠️ سيتم حذفها وإعادة الرقم للاستخدام.`;
             if (!confirm(msg)) return;
-            const newSaved = saved.filter(inv => parseInt(inv.number) !== parseInt(lastInv.number));
+            const newSaved = saved.filter(inv => String(inv.number) !== String(lastInv.number));
             localStorage.setItem('fondant_saved_invoices', JSON.stringify(newSaved));
-            localStorage.setItem('fondant_last_inv_num', parseInt(lastInv.number) - 1);
+            if (!/^FC-/i.test(String(lastInv.number))) {
+                localStorage.setItem('fondant_last_inv_num', parseInt(lastInv.number) - 1);
+            }
             if (typeof window.deleteInvoiceFromCloud === 'function') window.deleteInvoiceFromCloud(lastInv.number);
             currentInvoiceNum = getExpectedNextInvoiceNumber();
             invoiceNumberInput.value = currentInvoiceNum;
@@ -1941,7 +2010,7 @@
 
     function loadSavedInvoice(invNum) {
         const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
-        const inv = saved.find(i => parseInt(i.number) === parseInt(invNum));
+        const inv = saved.find(i => String(i.number) === String(invNum));
         if (!inv) return;
         if (inv.cancelled) {
             requestPassword('تعديل فاتورة ملغية - أدخل كلمة المرور', '123321', () => { doLoadInvoice(inv, true); });
@@ -2062,7 +2131,8 @@
 
     const HOSPITAL_ITEMS_REPORT_ITEMS = ['Sweet Graham', 'Grape Leaves Lemon', 'Grape Leaves Roman', 'Mohalabiya', 'Saffron Cake', 'Brownies Cups', 'Tiramisu Cheesecake'];
     let lastHospitalItemsHTML = '', lastHospitalItemsFilename = '';
-    document.getElementById('hospitalItemsBtn').addEventListener('click', () => { document.getElementById('hospitalItemsDate').value = getTodayDateInputString(); openModal('hospitalItemsModal'); });
+    // 🆕 فتح التقرير بتاريخ اليوم التالي تلقائياً
+    document.getElementById('hospitalItemsBtn').addEventListener('click', () => { document.getElementById('hospitalItemsDate').value = getTomorrowDateInputString(); openModal('hospitalItemsModal'); });
     function generateHospitalItemsReport() {
         const targetDate = document.getElementById('hospitalItemsDate').value;
         if (!targetDate) { alert('اختر التاريخ'); return; }
@@ -2079,24 +2149,27 @@
         });
         const hospitals = Object.keys(report).sort();
 
+        // 🆕 تكبير أسماء المستشفيات +15% (10px → 11.5px، 7.5px → 8.625px)
         let headersHTML = `<th style="width:22%; background:#004494; padding:4px 2px; color:#fff; line-height:1.2;">
-            <div style="font-size:10px; font-weight:900;">المستشفى</div>
-            <div style="font-size:7.5px; font-weight:normal; margin-top:2px;">Hospital</div>
+            <div style="font-size:11.5px; font-weight:900;">المستشفى</div>
+            <div style="font-size:8.625px; font-weight:normal; margin-top:2px;">Hospital</div>
         </th>`;
+        // 🆕 تكبير أسماء الأصناف +15% (9px → 10.35px، 6.5px → 7.475px)
         HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
             const ar = getArabicItemName(it);
             headersHTML += `<th style="width:11.14%; padding:3px 1px; line-height:1.15; word-break:break-word;">
-                <div style="font-size:9px; font-weight:900; color:#fff;">${ar}</div>
-                <div style="font-size:6.5px; font-weight:normal; color:#cfe2f3; margin-top:2px; letter-spacing:0;">${it}</div>
+                <div style="font-size:10.35px; font-weight:900; color:#fff;">${ar}</div>
+                <div style="font-size:7.475px; font-weight:normal; color:#cfe2f3; margin-top:2px; letter-spacing:0;">${it}</div>
             </th>`;
         });
 
         let rowsHTML = ''; const colTotals = {}; HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => colTotals[it] = 0);
         hospitals.forEach(hosp => {
             const arHosp = getArabicHospitalName(hosp);
+            // 🆕 تكبير أسماء المستشفيات في الصفوف +15% (11px → 12.65px، 7.5px → 8.625px)
             rowsHTML += `<tr><td class="hospital-name-cell">
-                <div style="font-size:11px; font-weight:900; color:#000; line-height:1.15;">${arHosp}</div>
-                <div style="font-size:7.5px; font-weight:normal; color:#666; line-height:1.15; margin-top:1px;">${hosp}</div>
+                <div style="font-size:12.65px; font-weight:900; color:#000; line-height:1.15;">${arHosp}</div>
+                <div style="font-size:8.625px; font-weight:normal; color:#666; line-height:1.15; margin-top:1px;">${hosp}</div>
             </td>`;
             HOSPITAL_ITEMS_REPORT_ITEMS.forEach(it => {
                 const qty = report[hosp][it]; colTotals[it] += qty;
