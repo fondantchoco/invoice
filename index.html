@@ -479,6 +479,11 @@
                 <button class="btn btn-danger" style="width: auto;" onclick="closeModal('savedInvoicesModal')">إغلاق ✖</button>
             </div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px;background:#fff8e1;border:1px solid #ffca28;border-radius:6px;">
+            <label for="cancelInvoiceNumberInput" style="font-weight:bold;">إلغاء فاتورة برقم محدد:</label>
+            <input id="cancelInvoiceNumberInput" type="text" placeholder="رقم الفاتورة" style="padding:8px;border:1px solid #bbb;border-radius:4px;min-width:150px;text-align:center;">
+            <button class="btn btn-danger" style="width:auto;" onclick="cancelInvoiceByNumber()">اختيار الفاتورة كملغية</button>
+        </div>
         <table class="saved-table">
             <thead>
                 <tr><th>رقم الفاتورة</th><th>النوع</th><th>التاريخ</th><th>العميل</th><th>الإجمالي</th><th>إجراء</th></tr>
@@ -849,8 +854,16 @@
         const input = document.getElementById('loginPassword');
         const error = document.getElementById('loginError');
         const card = document.getElementById('loginCard');
-        if (input.value === '55555') {
+        if (input.value === '55555' || input.value === '6666') {
             sessionStorage.setItem('fondant_logged_in', 'true');
+            // كلمة 6666 تفتح على الفاتورة الخارجية كنوع افتراضي، و55555 على المستشفيات.
+            const preferredType = input.value === '6666' ? 'external' : 'hospital';
+            sessionStorage.setItem('fondant_preferred_invoice_type', preferredType);
+            invoiceType = preferredType;
+            updateInvoiceTypeUI();
+            currentInvoiceNum = getExpectedNextInvoiceNumber(preferredType);
+            invoiceNumberInput.value = currentInvoiceNum;
+            populateAllDefaultItems();
             const overlay = document.getElementById('loginOverlay');
             overlay.style.transition = 'opacity 0.45s ease';
             overlay.style.opacity = '0';
@@ -1236,7 +1249,7 @@
     function loadExternalItemsDB() { const s = localStorage.getItem('fondant_external_items'); return s ? JSON.parse(s) : defaultExternalItemsDB; }
     let hospitalItemsDB = loadHospitalItemsDB().map(i => ({ name: toCapitalTitleCase(i.name), price: i.price }));
     let externalItemsDB = loadExternalItemsDB().map(i => ({ name: toCapitalTitleCase(i.name), price: i.price }));
-    let invoiceType = 'hospital';
+    let invoiceType = sessionStorage.getItem('fondant_preferred_invoice_type') || 'hospital';
     let currentItemsModalMode = 'hospital';
 
     function getActiveItemsDB() { return invoiceType === 'external' ? externalItemsDB : hospitalItemsDB; }
@@ -1976,7 +1989,7 @@
             row.insertCell(1).innerText = inv.type === 'external' ? 'خارجية' : 'مستشفيات';
             row.insertCell(2).innerText = inv.date;
             const custCell = row.insertCell(3);
-            custCell.innerHTML = inv.cancelled ? `<span class="cancelled-badge">ملغية</span>${inv.customer || '—'}` : (inv.customer || '');
+            custCell.innerHTML = inv.cancelled ? `<span class="cancelled-badge">ملغية</span>` : (inv.customer || '');
             row.insertCell(4).innerText = inv.cancelled ? '—' : inv.total;
             const btnLabel = inv.cancelled ? '🔓 تعديل (بكلمة مرور)' : 'استدعاء';
             row.insertCell(5).innerHTML = `<button class="btn btn-secondary" style="padding:3px 10px;" onclick="loadSavedInvoice('${inv.number}')">${btnLabel}</button>`;
@@ -1985,6 +1998,31 @@
     window.renderSavedInvoicesList = renderSavedInvoicesList;
 
     document.getElementById('viewInvoicesBtn').addEventListener('click', () => { renderSavedInvoicesList(); openModal('savedInvoicesModal'); setTimeout(() => { checkAndWarnMissingInvoices(); }, 300); });
+
+    function cancelInvoiceByNumber() {
+        const invoiceNumber = document.getElementById('cancelInvoiceNumberInput').value.trim();
+        if (!invoiceNumber) { alert('أدخل رقم الفاتورة المراد إلغاؤها.'); return; }
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const invoice = saved.find(inv => String(inv.number).trim().toLowerCase() === invoiceNumber.toLowerCase());
+        if (!invoice) { alert(`لا توجد فاتورة محفوظة برقم ${invoiceNumber}.`); return; }
+        if (invoice.cancelled) { alert(`الفاتورة ${invoiceNumber} مسجلة بالفعل كملغية.`); return; }
+        requestPassword('أدخل كلمة المرور لتسجيل الفاتورة كملغية', '123321', () => {
+            const current = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+            const target = current.find(inv => String(inv.number).trim().toLowerCase() === invoiceNumber.toLowerCase());
+            if (!target) { alert('تعذر العثور على الفاتورة.'); return; }
+            if (target.cancelled) { alert('الفاتورة ملغية بالفعل.'); return; }
+            target.cancelled = true;
+            target.cancelledAt = new Date().toISOString();
+            // نخفي بيانات العميل والمبلغ عند عرض سجل الفواتير الملغية، مع الاحتفاظ بالبيانات داخلياً.
+            target.updatedAt = Date.now();
+            localStorage.setItem('fondant_saved_invoices', JSON.stringify(current));
+            if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(target);
+            addLogEntry(`تسجيل الفاتورة ${invoiceNumber} كملغية`, false);
+            document.getElementById('cancelInvoiceNumberInput').value = '';
+            renderSavedInvoicesList();
+            alert(`تم تسجيل الفاتورة ${invoiceNumber} كملغية. لن تظهر ضمن كشف حساب العميل أو إجمالياته.`);
+        });
+    }
 
     function cancelLastInvoice() {
         requestPassword('أدخل كلمة المرور لإلغاء آخر فاتورة', '123321', () => {
