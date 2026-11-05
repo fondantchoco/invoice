@@ -299,6 +299,7 @@
         <button class="btn btn-danger" style="width: auto; padding: 3px 8px; font-size: 11px;" onclick="toggleMobileSidebar()">إغلاق ✖</button>
     </div>
     <button class="btn btn-primary" onclick="toggleMobileSidebar(); document.getElementById('saveInvoiceBtn').click();">💾 حفظ الفاتورة وتالي</button>
+    <button class="btn btn-orange" onclick="toggleMobileSidebar(); window.openDailyOrdersImport();">📥 استيراد طلبات المستشفيات تلقائياً</button>
     <button class="btn btn-purple" onclick="toggleMobileSidebar(); document.getElementById('exportDayPDFBtn').click();">📑 تصدير فواتير يوم محدد (PDF واحد)</button>
     <button class="btn btn-info" onclick="toggleMobileSidebar(); document.getElementById('viewInvoicesBtn').click();">📂 الفواتير المحفوظة</button>
     <button class="btn btn-pink" onclick="toggleMobileSidebar(); document.getElementById('hospitalItemsBtn').click();">🏥 كميات أصناف المستشفيات</button>
@@ -1248,6 +1249,7 @@
     function loadHospitalItemsDB() { const s = localStorage.getItem('fondant_items'); return s ? JSON.parse(s) : defaultItemsDB; }
     function loadExternalItemsDB() { const s = localStorage.getItem('fondant_external_items'); return s ? JSON.parse(s) : defaultExternalItemsDB; }
     let hospitalItemsDB = loadHospitalItemsDB().map(i => ({ name: toCapitalTitleCase(i.name), price: i.price }));
+    window.getHospitalItemsForOrdersImport = () => hospitalItemsDB.map(i => ({ name: i.name, price: Number(i.price) || 0 }));
     let externalItemsDB = loadExternalItemsDB().map(i => ({ name: toCapitalTitleCase(i.name), price: i.price }));
     let invoiceType = sessionStorage.getItem('fondant_preferred_invoice_type') || 'hospital';
     let currentItemsModalMode = 'hospital';
@@ -1800,7 +1802,7 @@
     }
     function skipWarningNo() { closeModal('skipWarningModal'); currentInvoiceNum = window._skipExpected; invoiceNumberInput.value = window._skipExpected; }
 
-    function performSaveInvoice(invNum, cancelled) {
+    async function performSaveInvoice(invNum, cancelled) {
         if (!cancelled) {
             if (!customerInput.value.trim()) { alert("يرجى إدخال اسم العميل أولاً."); return; }
             let hasValidQty = false;
@@ -1833,6 +1835,18 @@
         const deliveryFee = cancelled ? 0 : (invoiceType === 'external' ? getDeliveryFee() : 0);
         let savedInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
         if (editingInvoiceNumber !== null) savedInvoices = savedInvoices.filter(i => String(i.number) !== String(editingInvoiceNumber));
+        if (!cancelled && invoiceType === 'hospital') {
+            const duplicateForCustomerDay = savedInvoices.find(i =>
+                !i.cancelled &&
+                (i.type || 'hospital') === 'hospital' &&
+                String(i.date || '') === String(invoiceDateInput.value || '') &&
+                String(normalizeHospitalName(i.customer) || i.customer || '').trim().toLowerCase() === String(normalizeHospitalName(custName) || custName || '').trim().toLowerCase()
+            );
+            if (duplicateForCustomerDay) {
+                alert(`⚠️ توجد بالفعل فاتورة نشطة لهذا العميل في تاريخ ${invoiceDateInput.value} (رقم ${duplicateForCustomerDay.number}). لا يسمح بتكرار العميل في اليوم نفسه.`);
+                return;
+            }
+        }
         if (savedInvoices.some(i => String(i.number) === String(invNum))) { alert(`⚠️ رقم الفاتورة ${invNum} موجود مسبقاً.`); return; }
         let items = [];
         if (!cancelled) document.querySelectorAll('#invoiceRows tr').forEach(tr => { items.push({ name: tr.querySelector('.prod-input').value, price: tr.querySelector('.price-input').value, qty: tr.querySelector('.qty-input').value, total: tr.querySelector('.row-total').innerText }); });
@@ -1845,6 +1859,15 @@
         const currentHome = document.getElementById('homeInput').value;
         const newInvoiceData = { number: invNum, date: invoiceDateInput.value, customer: custName, phone: phoneVal, total: grandTotal, type: invoiceType, deliveryFee: deliveryFee, items, returns, area: currentArea, block: currentBlock, street: currentStreet, jeda: currentJeda, home: currentHome, updatedAt: Date.now() };
         if (cancelled) { newInvoiceData.cancelled = true; newInvoiceData.cancelledAt = new Date().toISOString(); }
+        if (!cancelled && invoiceType === 'hospital' && editingInvoiceNumber === null &&
+            typeof window.reserveHospitalCustomerDate === 'function') {
+            try {
+                await window.reserveHospitalCustomerDate(newInvoiceData.date, newInvoiceData.customer, String(invNum));
+            } catch (reservationError) {
+                alert(reservationError.message || 'تعذر التأكد من عدم تكرار العميل في التاريخ نفسه.');
+                return;
+            }
+        }
         savedInvoices.push(newInvoiceData);
         localStorage.setItem('fondant_saved_invoices', JSON.stringify(savedInvoices));
         if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(newInvoiceData);
@@ -2017,6 +2040,9 @@
             target.updatedAt = Date.now();
             localStorage.setItem('fondant_saved_invoices', JSON.stringify(current));
             if (typeof window.syncInvoiceToCloud === 'function') window.syncInvoiceToCloud(target);
+            if ((target.type || 'hospital') === 'hospital' && typeof window.releaseHospitalCustomerDate === 'function') {
+                window.releaseHospitalCustomerDate(target.date, target.customer, target.number).catch(console.error);
+            }
             addLogEntry(`تسجيل الفاتورة ${invoiceNumber} كملغية`, false);
             document.getElementById('cancelInvoiceNumberInput').value = '';
             renderSavedInvoicesList();
@@ -2038,6 +2064,9 @@
                 localStorage.setItem('fondant_last_inv_num', parseInt(lastInv.number) - 1);
             }
             if (typeof window.deleteInvoiceFromCloud === 'function') window.deleteInvoiceFromCloud(lastInv.number);
+            if ((lastInv.type || 'hospital') === 'hospital' && typeof window.releaseHospitalCustomerDate === 'function') {
+                window.releaseHospitalCustomerDate(lastInv.date, lastInv.customer, lastInv.number).catch(console.error);
+            }
             currentInvoiceNum = getExpectedNextInvoiceNumber();
             invoiceNumberInput.value = currentInvoiceNum;
             addLogEntry(`حذف آخر فاتورة رقم [ ${lastInv.number} ]`, false);
@@ -2760,7 +2789,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch, getDocs, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB2g8ZrwpaF9svjQxn5xfILZDkZcG34d8Q",
@@ -2923,6 +2952,276 @@
             window.renderSavedInvoicesList();
         }
     }, (error) => { console.error("❌ خطأ في الاستماع للفواتير:", error); });
+
+
+    // ============================================================
+    // استيراد طلبات المستشفيات من برنامج 02 (Firebase project مستقل)
+    // ============================================================
+    const ordersSourceConfig = {
+      apiKey: "AIzaSyAIKt2pRi-fh1KljVKZ83aJmPOCFsaj2pk",
+      authDomain: "dailyrequest-4865e.firebaseapp.com",
+      projectId: "dailyrequest-4865e",
+      storageBucket: "dailyrequest-4865e.firebasestorage.app",
+      messagingSenderId: "176708576834",
+      appId: "1:176708576834:web:fb73a5002b95f4c4aaafdb"
+    };
+    const ordersSourceApp = initializeApp(ordersSourceConfig, "dailyOrdersSource");
+    const ordersSourceDb = getFirestore(ordersSourceApp);
+
+    const orderImportDate = (offset = 1) => {
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    };
+    const normalizeImportName = value => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const canonicalImportName = value => normalizeImportName(window.normalizeHospitalNameForImport
+        ? window.normalizeHospitalNameForImport(value) : value);
+    const importSafe = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[ch]));
+    const importCustomerKey = (date, customer) =>
+        `${date}__${encodeURIComponent(canonicalImportName(customer))}`;
+
+    window.reserveHospitalCustomerDate = async function(date, customer, invoiceNumber) {
+        const cloudMatches = await getDocs(query(collection(db, 'invoices'), where('date', '==', date)));
+        const duplicateCloud = cloudMatches.docs.find(d => {
+            const inv = d.data();
+            return !inv.cancelled && (inv.type || 'hospital') === 'hospital'
+                && canonicalImportName(inv.customer) === canonicalImportName(customer);
+        });
+        if (duplicateCloud) {
+            throw new Error(`يوجد بالفعل رقم فاتورة ${duplicateCloud.data().number || duplicateCloud.id} للعميل ${customer} بتاريخ ${date}.`);
+        }
+        const lockRef = doc(db, 'dailyOrderInvoiceLocks', importCustomerKey(date, customer));
+        await runTransaction(db, async transaction => {
+            const lockSnap = await transaction.get(lockRef);
+            if (lockSnap.exists()) throw new Error(`العميل ${customer} لديه فاتورة أو طلب مستورد بالفعل بتاريخ ${date}.`);
+            transaction.set(lockRef, {
+                date, customer, invoiceNumber: String(invoiceNumber),
+                orderSource: 'manual-invoice-01', createdAt: Date.now()
+            });
+        });
+    };
+
+    window.releaseHospitalCustomerDate = async function(date, customer, invoiceNumber) {
+        if (!date || !customer) return;
+        const lockRef = doc(db, 'dailyOrderInvoiceLocks', importCustomerKey(date, customer));
+        await runTransaction(db, async transaction => {
+            const lockSnap = await transaction.get(lockRef);
+            if (lockSnap.exists() && String(lockSnap.data().invoiceNumber || '') === String(invoiceNumber)) {
+                transaction.delete(lockRef);
+            }
+        });
+    };
+
+    function ensureDailyOrdersImportUI() {
+        if (document.getElementById('dailyOrdersImportModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'dailyOrdersImportModal';
+        modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:30000;align-items:center;justify-content:center;padding:12px;';
+        modal.innerHTML = `
+          <div style="background:#fff;width:min(1050px,98vw);max-height:92vh;overflow:auto;border-radius:12px;padding:20px;direction:rtl;text-align:right;box-shadow:0 12px 40px #0005">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:12px">
+              <h2 style="margin:0;color:#173f5f">استيراد طلبات برنامج 02 إلى فواتير برنامج 01</h2>
+              <button type="button" id="closeDailyOrdersImport" class="btn btn-danger" style="width:auto">إغلاق ✖</button>
+            </div>
+            <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:16px 0">
+              <div style="display:flex;flex-direction:column;gap:5px;min-width:190px">
+                <label for="dailyOrdersImportDate" style="font-weight:bold">تاريخ الطلب / الفاتورة</label>
+                <input type="date" id="dailyOrdersImportDate" style="padding:10px;border:1px solid #999;border-radius:6px;font-size:16px">
+              </div>
+              <button type="button" id="loadDailyOrdersForImport" class="btn btn-info" style="width:auto">عرض الطلبات</button>
+              <span style="font-size:12px;color:#555">سيتم استخدام التاريخ المحدد نفسه كتاريخ للفاتورة، وهو افتراضياً تاريخ الغد.</span>
+            </div>
+            <div id="dailyOrdersImportStatus" style="padding:10px;background:#f3f6f9;border-radius:6px;margin-bottom:12px">اختر التاريخ ثم اضغط عرض الطلبات.</div>
+            <div id="dailyOrdersImportList"></div>
+            <div style="font-size:12px;color:#666;margin-top:14px;border-top:1px solid #ddd;padding-top:10px">
+              يتم إنشاء فاتورة مستقلة لكل مستشفى. لا يتم استيراد المرتجعات. الأصناف التي لا يوجد لها سعر مطابق في قائمة أصناف المستشفيات ستظهر كخطأ ولن يتم إصدار فاتورتها حتى يتم ضبط اسم الصنف أو سعره.
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('closeDailyOrdersImport').onclick = () => modal.style.display = 'none';
+        modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+        document.getElementById('dailyOrdersImportDate').value = orderImportDate(1);
+        document.getElementById('loadDailyOrdersForImport').onclick = () => loadDailyOrdersForImport().catch(showDailyImportError);
+    }
+
+    function showDailyImportError(error) {
+        console.error('Daily orders import:', error);
+        const status = document.getElementById('dailyOrdersImportStatus');
+        if (status) status.textContent = `تعذر تحميل الطلبات: ${error?.message || error}. تحقق من صلاحيات قراءة Firestore في مشروع برنامج 02.`;
+    }
+
+    window.openDailyOrdersImport = function() {
+        ensureDailyOrdersImportUI();
+        document.getElementById('dailyOrdersImportModal').style.display = 'flex';
+        loadDailyOrdersForImport().catch(showDailyImportError);
+    };
+
+    async function loadDailyOrdersForImport() {
+        ensureDailyOrdersImportUI();
+        const date = document.getElementById('dailyOrdersImportDate').value;
+        const status = document.getElementById('dailyOrdersImportStatus');
+        const list = document.getElementById('dailyOrdersImportList');
+        if (!date) { status.textContent = 'يرجى اختيار التاريخ.'; return; }
+        status.textContent = 'جارٍ الاتصال ببرنامج الطلبات وقراءة الطلبات...';
+        list.innerHTML = '';
+        const snap = await getDocs(query(collection(ordersSourceDb, 'orders'), where('date', '==', date)));
+        const orders = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+            .filter(o => o.hospital && o.quantities && Object.values(o.quantities).some(q => Number(q) > 0))
+            .sort((a,b) => String(a.hospital).localeCompare(String(b.hospital)));
+        if (!orders.length) {
+            status.textContent = `لا توجد طلبات محفوظة في برنامج 02 بتاريخ ${date}.`;
+            return;
+        }
+        const saved = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const prices = (typeof window.getHospitalItemsForOrdersImport === 'function'
+            ? window.getHospitalItemsForOrdersImport() : []);
+        const priceMap = new Map(prices.map(i => [normalizeImportName(i.name), Number(i.price) || 0]));
+        status.textContent = `تم العثور على ${orders.length} طلباً بتاريخ ${date}. اختر استيراد بجانب كل عميل لإنشاء فاتورته منفردة.`;
+        list.innerHTML = orders.map(order => {
+            const customer = String(order.hospital).trim();
+            const existing = saved.find(inv => !inv.cancelled && (inv.type || 'hospital') === 'hospital'
+                && String(inv.date || '') === date
+                && canonicalImportName(inv.customer) === canonicalImportName(customer));
+            const missing = Object.entries(order.quantities || {})
+                .filter(([name,qty]) => Number(qty) > 0 && !priceMap.has(normalizeImportName(name)))
+                .map(([name]) => name);
+            const validLines = Object.entries(order.quantities || {})
+                .filter(([name,qty]) => Number(qty) > 0 && priceMap.has(normalizeImportName(name)));
+            const amount = validLines.reduce((sum,[name,qty]) => sum + (priceMap.get(normalizeImportName(name)) * Number(qty)),0);
+            const issue = missing.length
+                ? `<div style="color:#b42318;font-weight:bold;margin-top:8px">أصناف غير معرفة في قائمة الأسعار: ${missing.map(importSafe).join('، ')}</div>` : '';
+            const state = existing
+                ? `<span style="color:#b42318;font-weight:bold">تم إصدار فاتورة لهذا العميل في هذا التاريخ (رقم ${importSafe(existing.number)})</span>`
+                : missing.length
+                    ? '<span style="color:#b42318;font-weight:bold">غير جاهز للاستيراد — راجع الأصناف والأسعار</span>'
+                    : '<span style="color:#137547;font-weight:bold">جاهز للاستيراد</span>';
+            const lines = validLines.map(([name,qty]) =>
+                `<tr><td style="padding:5px;border:1px solid #ddd">${importSafe(name)}</td><td style="padding:5px;border:1px solid #ddd;text-align:center">${Number(qty)}</td><td style="padding:5px;border:1px solid #ddd;text-align:center">${priceMap.get(normalizeImportName(name)).toFixed(3)}</td><td style="padding:5px;border:1px solid #ddd;text-align:center">${(priceMap.get(normalizeImportName(name))*Number(qty)).toFixed(3)}</td></tr>`
+            ).join('');
+            return `<div style="border:1px solid #cbd5e1;border-radius:9px;padding:13px;margin:10px 0;background:#fbfdff">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                <div><strong style="font-size:18px">${importSafe(customer)}</strong><div style="font-size:12px;color:#666;margin-top:4px">تاريخ الطلب: ${importSafe(date)} | عدد الأصناف: ${validLines.length}</div></div>
+                <div style="text-align:left"><strong style="color:#b42318;font-size:18px">${amount.toFixed(3)}</strong><div>${state}</div></div>
+              </div>
+              ${issue}
+              <div style="overflow:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#e8eef4"><th style="padding:5px;border:1px solid #ddd">الصنف</th><th style="padding:5px;border:1px solid #ddd">الكمية</th><th style="padding:5px;border:1px solid #ddd">السعر</th><th style="padding:5px;border:1px solid #ddd">الإجمالي</th></tr></thead><tbody>${lines}</tbody></table></div>
+              <div style="display:flex;justify-content:flex-end;margin-top:10px">
+                <button type="button" class="btn ${existing || missing.length ? 'btn-secondary' : 'btn-success'}" data-import-order="${importSafe(order.id)}" ${existing || missing.length ? 'disabled' : ''} style="width:auto">${existing ? 'تم إصدار الفاتورة' : missing.length ? 'غير جاهز' : 'إنشاء فاتورة لهذا العميل'}</button>
+              </div>
+            </div>`;
+        }).join('');
+        list.querySelectorAll('[data-import-order]').forEach(button => {
+            button.onclick = () => {
+                const order = orders.find(o => o.id === button.dataset.importOrder);
+                if (order) importOneDailyOrder(order, date, button).catch(showDailyImportError);
+            };
+        });
+    }
+
+    async function importOneDailyOrder(order, invoiceDate, button) {
+        const customer = String(order.hospital || '').trim();
+        if (!customer || !invoiceDate) throw new Error('بيانات العميل أو التاريخ غير مكتملة.');
+        const localInvoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+        const duplicate = localInvoices.find(inv => !inv.cancelled && (inv.type || 'hospital') === 'hospital'
+            && String(inv.date || '') === invoiceDate
+            && canonicalImportName(inv.customer) === canonicalImportName(customer));
+        if (duplicate) {
+            alert(`لا يمكن التكرار: توجد فاتورة رقم ${duplicate.number} للعميل ${customer} بتاريخ ${invoiceDate}.`);
+            await loadDailyOrdersForImport();
+            return;
+        }
+
+        const priceList = (typeof window.getHospitalItemsForOrdersImport === 'function'
+            ? window.getHospitalItemsForOrdersImport() : []);
+        const priceMap = new Map(priceList.map(i => [normalizeImportName(i.name), Number(i.price) || 0]));
+        const invoiceItems = [];
+        let grandTotal = 0;
+        for (const [name, rawQty] of Object.entries(order.quantities || {})) {
+            const qty = Number(rawQty) || 0;
+            if (qty <= 0) continue;
+            const price = priceMap.get(normalizeImportName(name));
+            if (price === undefined) throw new Error(`الصنف "${name}" غير موجود في قائمة أسعار المستشفيات.`);
+            const lineTotal = price * qty;
+            grandTotal += lineTotal;
+            invoiceItems.push({ name, price: price.toFixed(3), qty: String(qty), total: lineTotal.toFixed(3) });
+        }
+        if (!invoiceItems.length) throw new Error('الطلب لا يحتوي على كميات صالحة.');
+        if (!confirm(`سيتم إنشاء فاتورة للعميل: ${customer}\nتاريخ الفاتورة: ${invoiceDate}\nعدد الأصناف: ${invoiceItems.length}\nالإجمالي: ${grandTotal.toFixed(3)}\n\nهل تريد المتابعة؟`)) return;
+
+        button.disabled = true;
+        button.textContent = 'جارٍ إنشاء الفاتورة...';
+        const lockRef = doc(db, 'dailyOrderInvoiceLocks', importCustomerKey(invoiceDate, customer));
+        let createdInvoice = null;
+        try {
+            const cloudMatches = await getDocs(query(collection(db, 'invoices'), where('date', '==', invoiceDate)));
+            if (cloudMatches.docs.some(d => !d.data().cancelled && (d.data().type || 'hospital') === 'hospital'
+                && canonicalImportName(d.data().customer) === canonicalImportName(customer))) {
+                throw new Error('توجد بالفعل فاتورة سحابية لهذا العميل في التاريخ المحدد.');
+            }
+
+            let candidate = Number.parseInt(localStorage.getItem('fondant_last_inv_num') || '5000', 10);
+            const currentExpected = Number.parseInt(String(window.getExpectedNextInvoiceNumberForImport?.() || ''), 10);
+            if (Number.isFinite(currentExpected)) candidate = Math.max(candidate, currentExpected - 1);
+            if (!Number.isFinite(candidate)) candidate = 5000;
+
+            for (let attempt = 0; attempt < 20; attempt++) {
+                candidate++;
+                const invoiceNumber = String(candidate);
+                const invoiceRef = doc(db, 'invoices', invoiceNumber);
+                const lockData = {
+                    date: invoiceDate, customer, orderSource: 'dailyrequest-4865e',
+                    orderId: order.id, invoiceNumber, createdAt: Date.now()
+                };
+                const invoiceData = {
+                    number: invoiceNumber, date: invoiceDate, customer, phone: '',
+                    total: grandTotal.toFixed(3), type: 'hospital', deliveryFee: 0,
+                    items: invoiceItems, returns: [], area: '', block: '', street: '',
+                    jeda: '', home: '', source: 'daily-orders-02', sourceOrderId: order.id,
+                    sourceOrderDate: order.date, updatedAt: Date.now()
+                };
+                try {
+                    await runTransaction(db, async transaction => {
+                        const lockSnap = await transaction.get(lockRef);
+                        const invoiceSnap = await transaction.get(invoiceRef);
+                        if (lockSnap.exists()) throw new Error('DUPLICATE_CUSTOMER_DATE');
+                        if (invoiceSnap.exists()) throw new Error('INVOICE_NUMBER_TAKEN');
+                        transaction.set(lockRef, lockData);
+                        transaction.set(invoiceRef, invoiceData);
+                    });
+                    createdInvoice = invoiceData;
+                    break;
+                } catch (e) {
+                    if (e.message === 'INVOICE_NUMBER_TAKEN') continue;
+                    if (e.message === 'DUPLICATE_CUSTOMER_DATE') throw new Error('تم إصدار فاتورة لهذا العميل في التاريخ نفسه من جهاز آخر.');
+                    throw e;
+                }
+            }
+            if (!createdInvoice) throw new Error('تعذر حجز رقم فاتورة متاح. أعد المحاولة.');
+            const allLocal = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]');
+            allLocal.push(createdInvoice);
+            localStorage.setItem('fondant_saved_invoices', JSON.stringify(allLocal));
+            localStorage.setItem('fondant_last_inv_num', String(Number.parseInt(createdInvoice.number, 10)));
+            if (typeof window.addLogEntry === 'function') {
+                window.addLogEntry(`استيراد طلب برنامج 02 وإنشاء فاتورة رقم [ ${createdInvoice.number} ] للعميل ( ${customer} ) بتاريخ ${invoiceDate}`, false);
+            }
+            alert(`تم إنشاء الفاتورة رقم ${createdInvoice.number} للعميل ${customer} بنجاح.`);
+            await loadDailyOrdersForImport();
+        } catch (error) {
+            button.disabled = false;
+            button.textContent = 'إعادة المحاولة';
+            throw error;
+        }
+    }
+
+    window.getExpectedNextInvoiceNumberForImport = () => {
+        const invoices = JSON.parse(localStorage.getItem('fondant_saved_invoices') || '[]')
+            .filter(inv => (inv.type || 'hospital') === 'hospital');
+        const max = invoices.reduce((m, inv) => Math.max(m, Number.parseInt(inv.number, 10) || 0), 5000);
+        const stored = Number.parseInt(localStorage.getItem('fondant_last_inv_num') || '5000', 10) || 5000;
+        return Math.max(max, stored) + 1;
+    };
 
     console.log("🔥 Firebase + Firestore + Settings Sync جاهز");
 </script>
