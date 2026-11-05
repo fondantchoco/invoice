@@ -1092,6 +1092,36 @@
     // ═══════════════════════════════════════════════════════════════
     // ✅ الأصناف الافتراضية
     // ═══════════════════════════════════════════════════════════════
+    async function getMaster(){
+ const [h,i]=await Promise.all([
+  getDoc(doc(db,"settings","hospitals")),
+  getDoc(doc(db,"settings","items"))
+ ]);
+
+ if(h.exists()&&Array.isArray(h.data().values)){
+  hospitals=h.data().values;
+ }
+
+ if(i.exists()&&Array.isArray(i.data().values)){
+  items=i.data().values;
+ }
+
+ // Force Mohalabiya immediately after Grape Leaves Roman
+ const mohalabiyaIndex=items.indexOf("Mohalabiya");
+ const grapeLeavesIndex=items.indexOf("Grape Leaves Roman");
+
+ if(mohalabiyaIndex!==-1&&grapeLeavesIndex!==-1){
+  items.splice(mohalabiyaIndex,1);
+  const newIndex=items.indexOf("Grape Leaves Roman");
+  items.splice(newIndex+1,0,"Mohalabiya");
+ }
+
+ setOptions();
+ renderRows();
+ renderMaster();
+}
+    
+    
     const defaultItemsDB = [
         { name: "SWEET GRAHAM", price: 0.600 },
         { name: "HALLOUM CROLL SANDWICH", price: 0.500 },
